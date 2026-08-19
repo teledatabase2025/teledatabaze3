@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interní lokalizační analýza</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* Vložený vzhled TKM – stránka je samostatná a nepotřebuje lokální CSS soubor. */
+
+:root {
+  --blue:#0d47a1; --blue-dark:#08306b; --red:#b71c1c; --ink:#172033;
+  --muted:#667085; --line:#e0e6ef; --bg:#eef2f7; --green:#2e7d32;
+}
+* { box-sizing:border-box; }
+body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--ink); }
+.topbar { background:linear-gradient(135deg,var(--blue),var(--blue-dark)); color:#fff; min-height:86px; display:flex; align-items:center; justify-content:center; text-align:center; padding:18px 24px; font-size:25px; font-weight:700; box-shadow:0 3px 12px rgba(0,0,0,.22); }
+.topbar.red { background:linear-gradient(135deg,#c62828,#7f0000); }
+.container { max-width:1180px; margin:32px auto; padding:0 20px 44px; }
+.card { background:#fff; border-radius:12px; box-shadow:0 4px 18px rgba(0,0,0,.10); overflow:hidden; margin-bottom:26px; }
+.card-header { padding:22px 26px; border-bottom:1px solid var(--line); }
+.card-header h1,.card-header h2 { margin:0; }
+.card-header p { margin:8px 0 0; color:var(--muted); }
+.number-line { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.number { font-size:32px; font-weight:800; color:var(--blue); }
+.status { background:#e8f5e9; color:var(--green); border:1px solid #c8e6c9; padding:7px 12px; border-radius:999px; font-weight:700; font-size:14px; }
+.status.restricted { background:#fff3e0; color:#a44a00; border-color:#ffd3a6; }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:24px 26px; }
+.stat { background:#f7f9fc; border:1px solid var(--line); border-radius:10px; padding:16px; }
+.stat small { display:block; color:var(--muted); margin-bottom:8px; }
+.stat strong { font-size:21px; }
+.notice { margin:0 26px 24px; border-left:5px solid #ef6c00; background:#fff8ef; padding:15px 18px; border-radius:7px; color:#6f3d00; line-height:1.45; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th { background:#f7f9fc; color:#475467; text-align:left; font-size:14px; padding:14px 18px; border-bottom:1px solid var(--line); white-space:nowrap; }
+td { padding:15px 18px; border-bottom:1px solid #edf0f5; font-size:15px; vertical-align:middle; }
+tr:hover td { background:#f9fbff; }
+.badge { display:inline-block; padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; }
+.outgoing { background:#fff3e0; color:#ef6c00; }
+.incoming { background:#e8f5e9; color:var(--green); }
+.missed { background:#ffebee; color:#b71c1c; }
+.action,button.action { display:inline-block; background:var(--blue); color:#fff; border:0; padding:8px 13px; border-radius:7px; text-decoration:none; font-weight:700; font-size:14px; cursor:pointer; white-space:nowrap; }
+.action:hover,button.action:hover { background:var(--blue-dark); }
+.back { display:inline-block; margin-top:10px; background:#fff; color:var(--blue); border:1px solid #c7d7ef; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.back:hover { background:#f1f6ff; }
+.modal-backdrop { position:fixed; inset:0; z-index:1000; background:rgba(10,20,36,.66); display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-backdrop.open { display:flex; }
+.modal { width:min(520px,100%); background:#fff; border-radius:13px; box-shadow:0 18px 60px rgba(0,0,0,.35); overflow:hidden; }
+.modal-head { padding:18px 22px; background:#f7f9fc; border-bottom:1px solid var(--line); font-size:19px; font-weight:800; }
+.modal-body { padding:22px; line-height:1.55; }
+.modal-actions { padding:0 22px 22px; display:flex; justify-content:flex-end; gap:10px; }
+.modal-close { border:0; border-radius:7px; padding:10px 16px; background:var(--blue); color:#fff; cursor:pointer; font-weight:700; }
+@media(max-width:800px){ .stats{grid-template-columns:repeat(2,1fr)} .number{font-size:26px} .topbar{font-size:20px} }
+@media(max-width:520px){ .stats{grid-template-columns:1fr} }
+
+.number { text-decoration:none; display:inline-block; }
+.number:hover { text-decoration:underline; }
+.info-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; padding:26px 28px; }
+.info-box { background:#f7f9fc; border:1px solid var(--line); border-radius:10px; padding:18px; }
+.info-box small { display:block; color:var(--muted); margin-bottom:8px; font-size:14px; }
+.info-box strong { display:block; font-size:20px; line-height:1.4; }
+.info-box.full { grid-column:1/-1; }
+.person-link { color:var(--blue); text-decoration:none; font-weight:800; }
+.person-link:hover { text-decoration:underline; }
+.person-status { display:inline-block; background:#e8f5e9; color:var(--green); border:1px solid #c8e6c9; padding:7px 12px; border-radius:999px; font-weight:700; font-size:14px; }
+@media(max-width:700px){ .info-grid{grid-template-columns:1fr} .info-box.full{grid-column:auto} }
+
+.phone-link{color:var(--blue);font-weight:700;text-decoration:none}.phone-link:hover{text-decoration:underline}.back.primary-back{background:var(--blue);color:#fff;border-color:var(--blue);font-size:16px;padding:14px 20px;box-shadow:0 3px 10px rgba(13,71,161,.22)}.back.primary-back:hover{background:var(--blue-dark);color:#fff}.person-status.neutral{background:#eef2f7;color:#475467;border-color:#d0d5dd}
+
+</style>
+<style>
+:root{--loc-red:#b71c1c;--loc-red-dark:#7f0000;--loc-soft:#fff5f5;--loc-line:#ead2d2}
+.loc-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.case-tag{background:#ffebee;color:var(--loc-red);border:1px solid #ffcdd2;padding:8px 12px;border-radius:999px;font-weight:800;letter-spacing:.04em}
+.map-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(340px,.75fr);gap:22px;padding:24px 26px}
+.map-box{position:relative}
+.map-box:after{content:'INTERNÍ LOKALIZAČNÍ ANALÝZA';position:absolute;z-index:450;left:16px;top:16px;background:rgba(183,28,28,.92);color:#fff;padding:8px 11px;border-radius:6px;font-size:12px;font-weight:800;letter-spacing:.08em;pointer-events:none}
+#routeMap{height:610px;border-radius:9px;border:1px solid #ddd;background:#eee}
+.control-panel{border:1px solid var(--loc-line);border-radius:9px;overflow:hidden;align-self:start;background:#fff}
+.control-panel h3{margin:0;background:var(--loc-soft);padding:15px 17px;border-bottom:1px solid var(--loc-line)}
+.control-body{padding:16px}
+.action-btn{width:100%;border:0;background:var(--loc-red);color:#fff;padding:14px 13px;font-weight:800;cursor:pointer;font-size:14px;border-radius:6px;text-align:left;line-height:1.35;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.action-btn:hover{background:var(--loc-red-dark)}
+.action-btn:disabled{cursor:default;background:#897979;color:#f5eded}
+.action-wrap+.action-wrap{margin-top:12px}
+.action-wrap.hidden{display:none}
+.status-note{font-size:12px;color:#776969;margin:7px 2px 0;line-height:1.4}
+.status-note.done{color:#2f6e43;font-weight:700}
+.points-box{margin-top:18px;border-top:1px solid #eee;padding-top:14px}
+.point-row{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f1f1f1}
+.point-dot{width:11px;height:11px;border-radius:50%;background:var(--loc-red);margin-top:4px;flex:0 0 auto}
+.point-dot.accident{background:#111;box-shadow:0 0 0 3px rgba(183,28,28,.18)}
+.point-row strong{display:block;font-size:13px}.point-row span{font-size:12px;color:#777}
+.routes-panel{display:none;margin-top:18px;border-top:1px solid #eee;padding-top:14px}.routes-panel.open{display:block}
+.route-card{border:1px solid #ddd;border-radius:7px;padding:11px 12px;margin-top:9px;background:#fafafa}
+.route-title{display:flex;justify-content:space-between;gap:10px;font-weight:900;font-size:13px}.route-swatch{width:34px;height:5px;border-radius:5px;display:inline-block;margin-top:6px}
+.route-times{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.route-times div{background:#fff;border:1px solid #ececec;border-radius:5px;padding:8px}.route-times small{display:block;color:#777}.route-times strong{font-size:15px}
+.marker-pin{width:30px;height:30px;border-radius:50% 50% 50% 0;background:var(--loc-red);transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 7px rgba(0,0,0,.35)}
+.marker-pin span{display:block;transform:rotate(45deg);color:#fff;text-align:center;font:900 11px/24px Arial}
+.marker-pin.accident{background:#111;animation:markerPulse 1s infinite}
+@keyframes markerPulse{0%,100%{box-shadow:0 0 0 0 rgba(183,28,28,.55),0 2px 7px rgba(0,0,0,.35)}50%{box-shadow:0 0 0 10px rgba(183,28,28,0),0 2px 7px rgba(0,0,0,.35)}}
+.screen-flash{position:fixed;inset:0;background:#b00000;z-index:9998;pointer-events:none;opacity:0}
+.screen-flash.run{animation:redFlash .35s linear 6}
+@keyframes redFlash{0%,100%{opacity:0}50%{opacity:.88}}
+.alert-layer{position:fixed;inset:0;background:rgba(18,0,0,.78);z-index:9999;display:none;align-items:center;justify-content:center;padding:24px}.alert-layer.open{display:flex}
+.alert-box{width:min(760px,100%);background:#130707;border:2px solid #ef5350;color:#fff;border-radius:10px;box-shadow:0 0 45px rgba(255,0,0,.45);overflow:hidden}
+.alert-head{background:#b71c1c;padding:13px 18px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.alert-body{padding:30px 26px;text-align:center}.alert-code{font-size:13px;color:#ef9a9a;letter-spacing:.12em;font-weight:800;margin-bottom:13px}.alert-message{font-size:26px;line-height:1.3;font-weight:900;margin:0}.alert-sub{margin:15px 0 0;color:#e7caca;line-height:1.5}
+.alert-actions{padding:0 26px 24px;text-align:center}.alert-close{border:1px solid #ef5350;background:transparent;color:#fff;padding:10px 22px;border-radius:5px;font-weight:800;cursor:pointer}.alert-close:hover{background:#b71c1c}
+.analysis-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:22px 26px}.analysis-strip div{background:var(--loc-soft);border:1px solid #f3cccc;border-radius:9px;padding:15px}.analysis-strip small{display:block;color:#7c6161;margin-bottom:6px}.analysis-strip strong{font-size:17px}
+@media(max-width:900px){.map-grid{grid-template-columns:1fr}.analysis-strip{grid-template-columns:1fr}#routeMap{height:520px}}
+</style>
+</head>
+<body>
+<div class="topbar red">Interní databáze lokalizace zařízení</div>
+<div class="container">
+  <div class="card">
+    <div class="card-header loc-head">
+      <div>
+        <p>Analýza pohybu a porovnání dopravních tras</p>
+        <h1>Porovnání lokalizačních bodů</h1>
+      </div>
+      <span class="case-tag">REŽIM: RUČNÍ ANALÝZA</span>
+    </div>
+    <div class="analysis-strip">
+      <div><small>Zdroj dat</small><strong>Lokalizační databáze</strong></div>
+      <div><small>Typ analýzy</small><strong>Body + silniční trasy</strong></div>
+      <div><small>Stav</small><strong id="analysisState">Čeká na zaměření</strong></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Mapová lokalizační analýza</h2>
+      <p>Jednotlivé kroky analýzy se zpřístupňují podle výsledků předchozího vyhodnocení.</p>
+    </div>
+    <div class="map-grid">
+      <div class="map-box"><div id="routeMap"></div></div>
+      <div class="control-panel">
+        <h3>Vyšetřovací úkony</h3>
+        <div class="control-body">
+          <div class="action-wrap" id="step1">
+            <button class="action-btn" id="btnElvira" type="button">Zaměřit polohu domu Elvíry von den Linden</button>
+            <div class="status-note" id="noteElvira">Poloha dosud nebyla zaměřena.</div>
+          </div>
+          <div class="action-wrap" id="step2">
+            <button class="action-btn" id="btnSebastian" type="button">Zaměřit polohu bytu Sebastiana Rýdla</button>
+            <div class="status-note" id="noteSebastian">Poloha dosud nebyla zaměřena.</div>
+          </div>
+          <div class="action-wrap hidden" id="step3">
+            <button class="action-btn" id="btnRoutes" type="button">Vypočítat trasy z domu Elvíry von den Linden do bytu Sebastiana Rýdla</button>
+            <div class="status-note" id="noteRoutes">Výpočet tras dosud nebyl proveden.</div>
+          </div>
+          <div class="action-wrap hidden" id="step4">
+            <button class="action-btn" id="btnAccident" type="button">Zobrazit místo nehody Sebastiana Rýdla</button>
+            <div class="status-note" id="noteAccident">Místo nehody dosud nebylo porovnáno s trasami.</div>
+          </div>
+
+          <div class="points-box" id="pointsBox"></div>
+          <div class="routes-panel" id="routesPanel">
+            <strong>Vypočtené varianty</strong>
+            <div id="routeCards"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen-flash" id="screenFlash"></div>
+<div class="alert-layer" id="alertLayer" role="dialog" aria-modal="true">
+  <div class="alert-box">
+    <div class="alert-head">Kritická nesrovnalost lokalizačních dat</div>
+    <div class="alert-body">
+      <div class="alert-code">TRASOVÁ ANALÝZA / NESHODA</div>
+      <p class="alert-message">Místo nehody Sebastiana Rýdla není na trase z domu Elvíry von den Linden do jeho bytu!!!</p>
+      <p class="alert-sub">Porovnání všech vypočtených variant nepotvrdilo průjezd místem nehody.</p>
+    </div>
+    <div class="alert-actions"><button class="alert-close" id="alertClose" type="button">Zavřít upozornění</button></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/*
+  EDITOVATELNÁ KONFIGURACE LOKACÍ.
+  Přesné adresy lze později změnit pouze zde; zbytek stránky se nemusí upravovat.
+*/
+const LOCATIONS = {
+  elvira: {
+    name: 'Dům Elvíry von den Linden',
+    address: 'Pařížská, Praha 1',
+    coords: [50.09034, 14.41855],
+    code: 'E'
+  },
+  sebastian: {
+    name: 'Byt Sebastiana Rýdla',
+    address: 'Vinohrady, Praha 2',
+    coords: [50.07539, 14.43778],
+    code: 'S'
+  },
+  accident: {
+    name: 'Místo nehody Sebastiana Rýdla',
+    address: 'oblast Anděl, Praha 5',
+    coords: [50.07018, 14.40462],
+    code: '!'
+  }
+};
+
+/* Tři modelové rozumné automobilové varianty. Body lze později zpřesnit. */
+const ROUTES = [
+  {
+    name:'Varianta A – centrum / magistrála',
+    normal:'14 min', heavy:'24 min', distance:'5,1 km', color:'#1565c0',
+    points:[
+      LOCATIONS.elvira.coords,[50.08846,14.42408],[50.08605,14.43043],[50.08162,14.43179],
+      [50.07812,14.43089],[50.07595,14.43352],LOCATIONS.sebastian.coords
+    ]
+  },
+  {
+    name:'Varianta B – přes Nové Město',
+    normal:'16 min', heavy:'27 min', distance:'5,7 km', color:'#2e7d32',
+    points:[
+      LOCATIONS.elvira.coords,[50.08748,14.41615],[50.08310,14.41786],[50.07967,14.42083],
+      [50.07543,14.42391],[50.07389,14.43055],[50.07463,14.43511],LOCATIONS.sebastian.coords
+    ]
+  },
+  {
+    name:'Varianta C – přes Těšnov / Vinohradskou',
+    normal:'18 min', heavy:'31 min', distance:'6,4 km', color:'#6a1b9a',
+    points:[
+      LOCATIONS.elvira.coords,[50.09214,14.42615],[50.09114,14.43713],[50.08648,14.44125],
+      [50.08148,14.43919],[50.07814,14.44202],LOCATIONS.sebastian.coords
+    ]
+  }
+];
+
+const map=L.map('routeMap',{zoomControl:true}).setView([50.0827,14.4248],14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap'
+}).addTo(map);
+
+const markers={};
+const routeLayers=[];
+let elviraDone=false, sebastianDone=false, routesDone=false, accidentDone=false;
+
+function markerIcon(code,isAccident=false){
+  return L.divIcon({
+    className:'',
+    html:`<div class="marker-pin${isAccident?' accident':''}"><span>${code}</span></div>`,
+    iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-30]
+  });
+}
+function addPoint(key,isAccident=false){
+  const loc=LOCATIONS[key];
+  if(markers[key]) return markers[key];
+  const m=L.marker(loc.coords,{icon:markerIcon(loc.code,isAccident)}).addTo(map)
+    .bindPopup(`<strong>${loc.name}</strong><br>${loc.address}`);
+  markers[key]=m;
+  m.openPopup();
+  renderPoints();
+  return m;
+}
+function renderPoints(){
+  const box=document.getElementById('pointsBox');
+  const keys=['elvira','sebastian','accident'].filter(k=>markers[k]);
+  if(!keys.length){box.innerHTML='';return;}
+  box.innerHTML='<strong>Zaměřené body</strong>'+keys.map(k=>{
+    const l=LOCATIONS[k];
+    return `<div class="point-row"><i class="point-dot${k==='accident'?' accident':''}"></i><div><strong>${l.name}</strong><span>${l.address}</span></div></div>`;
+  }).join('');
+}
+function setDone(buttonId,noteId,text){
+  const btn=document.getElementById(buttonId);btn.disabled=true;
+  const note=document.getElementById(noteId);note.textContent=text;note.classList.add('done');
+}
+function updateState(text){document.getElementById('analysisState').textContent=text}
+function fitKnown(){
+  const pts=Object.values(markers).map(m=>m.getLatLng());
+  if(!pts.length)return;
+  if(pts.length===1)map.setView(pts[0],16);else map.fitBounds(L.latLngBounds(pts),{padding:[55,55],maxZoom:15});
+}
+
+document.getElementById('btnElvira').addEventListener('click',()=>{
+  addPoint('elvira');elviraDone=true;
+  setDone('btnElvira','noteElvira','Poloha zaměřena: Pařížská, Praha 1.');
+  updateState('1 lokalizační bod potvrzen');fitKnown();
+});
+
+document.getElementById('btnSebastian').addEventListener('click',()=>{
+  addPoint('sebastian');sebastianDone=true;
+  setDone('btnSebastian','noteSebastian','Poloha zaměřena: Vinohrady, Praha 2.');
+  updateState('2 lokalizační body potvrzeny');fitKnown();
+  if(elviraDone)document.getElementById('step3').classList.remove('hidden');
+});
+
+/* Pokud hráč zaměří Sebastiana jako prvního, třetí krok se odemkne po zaměření Elvíry. */
+document.getElementById('btnElvira').addEventListener('click',()=>{
+  if(sebastianDone)document.getElementById('step3').classList.remove('hidden');
+});
+
+document.getElementById('btnRoutes').addEventListener('click',()=>{
+  if(!elviraDone||!sebastianDone)return;
+  ROUTES.forEach(r=>{
+    const line=L.polyline(r.points,{color:r.color,weight:5,opacity:.76,dashArray:null}).addTo(map);
+    line.bindPopup(`<strong>${r.name}</strong><br>Běžný provoz: ${r.normal}<br>Hustý provoz: ${r.heavy}<br>Délka: ${r.distance}`);
+    routeLayers.push(line);
+  });
+  document.getElementById('routeCards').innerHTML=ROUTES.map(r=>`<div class="route-card"><div class="route-title"><span>${r.name}</span><i class="route-swatch" style="background:${r.color}"></i></div><div class="route-times"><div><small>Běžný provoz</small><strong>${r.normal}</strong></div><div><small>Hustý provoz</small><strong>${r.heavy}</strong></div></div><div class="status-note">Délka trasy: ${r.distance}</div></div>`).join('');
+  document.getElementById('routesPanel').classList.add('open');
+  setDone('btnRoutes','noteRoutes','Byly vypočteny 3 možné silniční trasy.');
+  document.getElementById('step4').classList.remove('hidden');
+  routesDone=true;updateState('Trasy vypočteny');
+  const all=ROUTES.flatMap(r=>r.points);map.fitBounds(L.latLngBounds(all),{padding:[45,45]});
+});
+
+document.getElementById('btnAccident').addEventListener('click',()=>{
+  if(!routesDone||accidentDone)return;
+  addPoint('accident',true);accidentDone=true;
+  setDone('btnAccident','noteAccident','Místo nehody zobrazeno. Probíhá porovnání s vypočtenými trasami…');
+  updateState('POROVNÁNÍ TRAS: NESHODA');
+  map.fitBounds(L.latLngBounds([LOCATIONS.elvira.coords,LOCATIONS.sebastian.coords,LOCATIONS.accident.coords]),{padding:[55,55]});
+  setTimeout(()=>{
+    const flash=document.getElementById('screenFlash');
+    flash.classList.remove('run');void flash.offsetWidth;flash.classList.add('run');
+    setTimeout(()=>document.getElementById('alertLayer').classList.add('open'),2100);
+  },550);
+});
+
+document.getElementById('alertClose').addEventListener('click',()=>document.getElementById('alertLayer').classList.remove('open'));
+document.getElementById('alertLayer').addEventListener('click',e=>{if(e.target.id==='alertLayer')e.currentTarget.classList.remove('open')});
+</script>
+</body>
+</html>
