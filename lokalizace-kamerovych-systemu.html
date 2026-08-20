@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interní databáze lokalizace kamerových systémů</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --red:#b71c1c;--red-dark:#7f0000;--red-soft:#fff5f5;--ink:#172033;
+  --muted:#667085;--line:#e0e6ef;--bg:#eef2f7;--green:#2e7d32;--amber:#b26a00;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.topbar{background:linear-gradient(135deg,#c62828,#7f0000);color:#fff;min-height:86px;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px 24px;font-size:25px;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.22)}
+.container{max-width:1180px;margin:32px auto;padding:0 20px 44px}
+.card{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.10);overflow:hidden;margin-bottom:26px}
+.card-header{padding:22px 26px;border-bottom:1px solid var(--line)}
+.card-header h1,.card-header h2{margin:0}.card-header p{margin:8px 0 0;color:var(--muted)}
+.loc-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.case-tag{background:#ffebee;color:var(--red);border:1px solid #ffcdd2;padding:8px 12px;border-radius:999px;font-weight:800;letter-spacing:.04em}
+.analysis-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:22px 26px}.analysis-strip div{background:var(--red-soft);border:1px solid #f3cccc;border-radius:9px;padding:15px}.analysis-strip small{display:block;color:#7c6161;margin-bottom:6px}.analysis-strip strong{font-size:17px}
+.search-wrap{padding:24px 26px;display:grid;grid-template-columns:1fr auto;gap:12px}.search-wrap label{grid-column:1/-1;font-weight:800}.search-wrap input{width:100%;border:1px solid #cfd6df;border-radius:7px;padding:14px 15px;font-size:16px;outline:none}.search-wrap input:focus{border-color:#d64a4a;box-shadow:0 0 0 3px rgba(183,28,28,.08)}
+.action-btn{border:0;background:var(--red);color:#fff;padding:13px 16px;font-weight:800;cursor:pointer;font-size:14px;border-radius:7px;line-height:1.35;box-shadow:0 1px 2px rgba(0,0,0,.08)}.action-btn:hover{background:var(--red-dark)}.action-btn:disabled{cursor:default;background:#897979;color:#f5eded}.action-btn.processing{background:#5e1717!important;cursor:wait}.action-btn.processing:after{content:'';display:inline-block;width:12px;height:12px;margin-left:9px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;vertical-align:-2px;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.map-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(330px,.75fr);gap:22px;padding:24px 26px}.map-box{position:relative}.map-box:after{content:'LOKALIZACE KAMEROVÝCH SYSTÉMŮ';position:absolute;z-index:450;left:16px;top:16px;background:rgba(183,28,28,.92);color:#fff;padding:8px 11px;border-radius:6px;font-size:12px;font-weight:800;letter-spacing:.08em;pointer-events:none}
+#cameraMap{height:610px;border-radius:9px;border:1px solid #ddd;background:linear-gradient(135deg,#ececec,#d9d9d9)}
+.side-panel{border:1px solid #ead2d2;border-radius:9px;overflow:hidden;align-self:start;background:#fff}.side-panel h3{margin:0;background:var(--red-soft);padding:15px 17px;border-bottom:1px solid #ead2d2}.side-body{padding:16px}.side-note{font-size:12px;color:#776969;line-height:1.5;margin-bottom:12px}
+.camera-list{display:flex;flex-direction:column;gap:9px}.camera-row{border:1px solid #e4e7ec;border-radius:8px;padding:11px 12px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:#fff;cursor:pointer;transition:.16s ease}.camera-row:hover{border-color:#d66;background:#fffafa;transform:translateY(-1px)}.camera-row.hidden{display:none}.camera-row strong{display:block;font-size:14px}.camera-row span{font-size:12px;color:#777}.camera-chip{flex:0 0 auto;background:#ffebee;color:#a81313;border:1px solid #ffcdd2;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;letter-spacing:.04em}
+.marker-camera{width:32px;height:32px;border-radius:7px;background:#b71c1c;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.36);display:flex;align-items:center;justify-content:center;color:white;font:900 11px Arial}.marker-target{width:34px;height:34px;border-radius:50%;background:#111;border:4px solid #fff;box-shadow:0 0 0 4px rgba(183,28,28,.22),0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff;font:900 13px Arial}
+.map-process{position:absolute;z-index:700;left:50%;bottom:22px;transform:translateX(-50%) translateY(12px);width:min(520px,calc(100% - 34px));background:rgba(19,7,7,.94);color:#fff;border:1px solid rgba(239,83,80,.75);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:13px 15px;opacity:0;pointer-events:none;transition:.22s ease}.map-process.open{opacity:1;transform:translateX(-50%) translateY(0)}.process-top{display:flex;justify-content:space-between;gap:14px;align-items:center;font-size:12px;font-weight:800;letter-spacing:.05em}.process-pct{color:#ffcdd2}.process-bar{height:4px;background:#4c2323;border-radius:99px;overflow:hidden;margin-top:9px}.process-bar>i{display:block;height:100%;width:0;background:#ef5350;transition:width .35s ease}.process-sub{font-size:11px;color:#e4c3c3;margin-top:8px;min-height:15px}
+.scan-reticle{position:absolute;z-index:650;left:50%;top:50%;width:116px;height:116px;transform:translate(-50%,-50%);border:1px solid rgba(239,83,80,.25);border-radius:50%;pointer-events:none;opacity:0}.scan-reticle:before,.scan-reticle:after{content:'';position:absolute;left:50%;top:50%;background:rgba(239,83,80,.52);transform:translate(-50%,-50%)}.scan-reticle:before{width:150px;height:1px}.scan-reticle:after{width:1px;height:150px}.scan-reticle.active{opacity:1;animation:reticlePulse 1.05s ease-in-out infinite}.scan-reticle.active span{position:absolute;inset:10px;border:2px solid rgba(239,83,80,.72);border-radius:50%;animation:reticleSpin 1.25s linear infinite;border-right-color:transparent;border-bottom-color:transparent}@keyframes reticlePulse{0%,100%{transform:translate(-50%,-50%) scale(.88);opacity:.45}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}@keyframes reticleSpin{to{transform:rotate(360deg)}}
+.modal-backdrop{position:fixed;inset:0;z-index:2000;background:rgba(10,20,36,.70);display:none;align-items:center;justify-content:center;padding:20px}.modal-backdrop.open{display:flex}.modal{width:min(600px,100%);background:#fff;border-radius:13px;box-shadow:0 18px 60px rgba(0,0,0,.38);overflow:hidden}.modal-head{padding:18px 22px;background:#f7f9fc;border-bottom:1px solid var(--line);font-size:19px;font-weight:900}.modal-body{padding:22px;line-height:1.55}.modal-actions{padding:0 22px 22px;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}.modal-close{border:1px solid #d0d5dd;border-radius:7px;padding:10px 16px;background:#fff;color:#344054;cursor:pointer;font-weight:800}.modal-close:hover{background:#f5f5f5}.status-panel{border-left:5px solid #98a2b3;background:#f8f9fb;padding:14px 15px;border-radius:7px}.status-panel.bad{border-left-color:#b71c1c;background:#fff6f6}.status-panel.offline{border-left-color:#a96900;background:#fff9ed}.status-panel.good{border-left-color:#2e7d32;background:#f2fbf4}.status-code{font-size:11px;letter-spacing:.09em;font-weight:900;color:#667085;margin-bottom:7px}.status-panel strong{display:block;font-size:17px;margin-bottom:4px}
+.form-field{margin-top:15px}.form-field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}.form-field input{width:100%;border:1px solid #cfd6df;border-radius:7px;padding:12px 13px;font-size:16px;outline:none}.form-field input:focus{border-color:#d64a4a;box-shadow:0 0 0 3px rgba(183,28,28,.08)}.form-error{display:none;color:#b42318;background:#fff1f0;border:1px solid #fecdca;border-radius:7px;padding:10px 12px;margin-top:12px;font-size:13px;font-weight:700}.form-error.show{display:block}
+.archive-view{display:none}.archive-view.open{display:block}.archive-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;padding:18px 22px;background:#160909;color:#fff;border-bottom:3px solid #b71c1c}.archive-head h2{margin:0;font-size:20px}.archive-head small{display:block;color:#dfbcbc;margin-top:4px}.archive-badge{background:#b71c1c;padding:7px 10px;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.06em}.archive-body{padding:22px}.video-shell{background:#080808;border-radius:8px;overflow:hidden;border:1px solid #333}.video-shell video{display:block;width:100%;max-height:560px;background:#000}.video-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.video-meta div{background:#f7f9fc;border:1px solid #e5e7eb;border-radius:7px;padding:10px}.video-meta small{display:block;color:#777;margin-bottom:4px}.video-meta strong{font-size:14px}.video-help{font-size:12px;color:#667085;line-height:1.45;margin:10px 0 0}.identify-wrap{margin-top:18px;padding-top:18px;border-top:1px solid #e5e7eb}.identify-panel{display:none;margin-top:14px;background:#fffafa;border:1px solid #efcccc;border-radius:9px;padding:16px}.identify-panel.open{display:block}.identify-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.identify-result{display:none;margin-top:14px;border-radius:8px;padding:12px 13px;font-weight:800}.identify-result.bad{display:block;background:#fff1f0;color:#b42318;border:1px solid #fecdca}.identify-result.good{display:block;background:#ecfdf3;color:#027a48;border:1px solid #abefc6}.back-archive{margin-top:18px}
+@media(max-width:900px){.map-grid{grid-template-columns:1fr}.analysis-strip{grid-template-columns:1fr}#cameraMap{height:520px}}@media(max-width:680px){.search-wrap{grid-template-columns:1fr}.identify-grid,.video-meta{grid-template-columns:1fr}.topbar{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="topbar">Interní databáze lokalizace kamerových systémů</div>
+<div class="container" id="mainView">
+  <div class="card">
+    <div class="card-header loc-head">
+      <div><p>Vyhledání dostupných kamerových bodů v okolí objektu</p><h1>Lokalizace kamerových systémů</h1></div>
+      <span class="case-tag">REŽIM: FORENZNÍ VYHLEDÁVÁNÍ</span>
+    </div>
+    <div class="analysis-strip">
+      <div><small>Zdroj dat</small><strong>Městské + soukromé kamerové body</strong></div>
+      <div><small>Vyhledávací oblast</small><strong id="radiusText">Nenastavena</strong></div>
+      <div><small>Stav</small><strong id="analysisState">Čeká na zadání adresy</strong></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>Vyhledat kamery v okolí adresy</h2><p>Zadejte adresu předmětného objektu. Systém vyhledá nejbližší evidované kamerové body.</p></div>
+    <div class="search-wrap">
+      <label for="addressInput">Adresa objektu</label>
+      <input id="addressInput" type="text" placeholder="např. Pařížská 18, Praha 1" autocomplete="off">
+      <button class="action-btn" id="searchBtn" type="button">Vyhledat kamerové systémy v okolí</button>
+    </div>
+  </div>
+
+  <div class="card" id="mapCard" style="display:none">
+    <div class="card-header"><h2>Mapová analýza kamerových bodů</h2><p>Kamerové body jsou zobrazeny bez předběžného vyhodnocení použitelnosti. Stav konkrétní kamery zjistíte jejím otevřením.</p></div>
+    <div class="map-grid">
+      <div class="map-box">
+        <div id="cameraMap"></div>
+        <div class="scan-reticle" id="scanReticle"><span></span></div>
+        <div class="map-process" id="mapProcess"><div class="process-top"><span id="processLabel">Inicializace</span><span class="process-pct" id="processPct">0 %</span></div><div class="process-bar"><i id="processBar"></i></div><div class="process-sub" id="processSub"></div></div>
+      </div>
+      <div class="side-panel">
+        <h3>Nalezené kamerové body</h3>
+        <div class="side-body">
+          <div class="side-note">Kliknutím na kameru proveďte kontrolu jejího směrování, dostupnosti a archivních dat.</div>
+          <div class="camera-list" id="cameraList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container archive-view" id="archiveView">
+  <div class="card">
+    <div class="archive-head">
+      <div><h2 id="archiveTitle">Kamerový archiv</h2><small id="archiveSubtitle"></small></div>
+      <div class="archive-badge">ARCHIVNÍ ZÁZNAM</div>
+    </div>
+    <div class="archive-body">
+      <div class="video-shell">
+        <video id="archiveVideo" controls preload="metadata">
+          <source id="archiveSource" src="" type="video/mp4">
+          Váš prohlížeč nepodporuje přehrávání videa.
+        </video>
+      </div>
+      <div class="video-meta">
+        <div><small>Kamera</small><strong id="metaCamera">—</strong></div>
+        <div><small>Časový úsek</small><strong id="metaTime">—</strong></div>
+        <div><small>Režim</small><strong>Archiv / ruční přehrávání</strong></div>
+      </div>
+      <p class="video-help">Záznam lze pozastavit, vracet a libovolně posouvat pomocí časové osy přehrávače.</p>
+
+      <div class="identify-wrap" id="identifyWrap" style="display:none">
+        <button class="action-btn" id="identifyBtn" type="button">Identifikovat osoby na kamerovém záznamu</button>
+        <div class="identify-panel" id="identifyPanel">
+          <strong>Identifikace osob</strong>
+          <p class="video-help">Zadejte jména a příjmení dvou osob zachycených na kamerovém záznamu.</p>
+          <div class="identify-grid">
+            <div class="form-field"><label for="person1">Osoba 1</label><input id="person1" type="text" autocomplete="off"></div>
+            <div class="form-field"><label for="person2">Osoba 2</label><input id="person2" type="text" autocomplete="off"></div>
+          </div>
+          <button class="action-btn" id="verifyIdentity" type="button" style="margin-top:14px">Ověřit identifikaci</button>
+          <div class="identify-result" id="identifyResult"></div>
+        </div>
+      </div>
+
+      <button class="modal-close back-archive" id="backToMap" type="button">← Zpět na lokalizaci kamer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="cameraModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-head" id="cameraModalTitle">Kontrola kamerového bodu</div>
+    <div class="modal-body" id="cameraModalBody"></div>
+    <div class="modal-actions" id="cameraModalActions"><button class="modal-close" data-close="cameraModal" type="button">Zavřít</button></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="timeModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-head">Přístup k archivu kamerového systému</div>
+    <div class="modal-body">
+      <div class="status-panel good"><div class="status-code">ARCHIVNÍ ÚLOŽIŠTĚ / AUTORIZOVANÝ PŘÍSTUP</div><strong id="timeCameraName">Kamerový bod</strong><span>Pro načtení relevantního úseku zadejte datum a čas incidentu.</span></div>
+      <div class="identify-grid">
+        <div class="form-field"><label for="incidentDate">Datum incidentu</label><input id="incidentDate" type="date"></div>
+        <div class="form-field"><label for="incidentTime">Čas incidentu</label><input id="incidentTime" type="time" step="60"></div>
+      </div>
+      <div class="form-error" id="timeError">Pro zadané datum a čas nebyl nalezen záznam odpovídající parametrům případu.</div>
+    </div>
+    <div class="modal-actions"><button class="modal-close" data-close="timeModal" type="button">Zrušit</button><button class="action-btn" id="loadArchiveBtn" type="button">Načíst kamerový záznam</button></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================
+   EDITOVATELNÁ HERNÍ DATA
+   =========================
+   TARGET.coords: poloha předmětného objektu na mapě.
+   INCIDENT_DATE + INCIDENT_TIME: jediná kombinace data a času, která odemkne archiv.
+   video: názvy MP4 souborů vložených vedle tohoto HTML.
+*/
+const TARGET = {
+  coords:[50.08965,14.41805],
+  fallbackAddress:'Pařížská 18, Praha 1'
+};
+const INCIDENT_DATE = '2026-06-08';
+const INCIDENT_DATE_LABEL = '8. 6. 2026';
+const INCIDENT_TIME = '22:18';
+const RECORD_WINDOW = '22:13–22:23';
+
+const CAMERAS = [
+  {id:'KAM-01',coords:[50.09055,14.41692],distance:135,type:'blocked',reason:'Kamera nemonitoruje žádný příjezd k předmětné budově ani přístupovou cestu. Z místa instalace není na předmětný objekt přímý výhled.'},
+  {id:'KAM-02',coords:[50.08914,14.41663],distance:118,type:'playable',video:'kamera-k02.mp4',identify:false},
+  {id:'KAM-03',coords:[50.09102,14.41963],distance:173,type:'blocked',reason:'Kamera nemonitoruje žádný příjezd k předmětné budově ani přístupovou cestu. Z místa instalace není na předmětný objekt přímý výhled.'},
+  {id:'KAM-04',coords:[50.08843,14.41945],distance:162,type:'offline',since:'27. 5. 2026'},
+  {id:'KAM-05',coords:[50.08879,14.42026],distance:196,type:'blocked',reason:'Kamera nemonitoruje žádný příjezd k předmětné budově ani přístupovou cestu. Z místa instalace není na předmětný objekt přímý výhled.'},
+  {id:'KAM-06',coords:[50.09026,14.41918],distance:104,type:'playable',video:'kamera-k06.mp4',identify:true}
+];
+
+/* Správné identity nejsou nikde v rozhraní zobrazené. */
+const CORRECT_IDENTITIES = ['damian korda','klara sehnalova'];
+
+let map, targetMarker, selectedCamera=null;
+const cameraMarkers=[];
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function normalizeText(v){
+  return (v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function camIcon(id){return L.divIcon({className:'',html:`<div class="marker-camera">${id.slice(-2)}</div>`,iconSize:[32,32],iconAnchor:[16,16]});}
+function targetIcon(){return L.divIcon({className:'',html:'<div class="marker-target">O</div>',iconSize:[34,34],iconAnchor:[17,17]});}
+function initMap(){
+  if(map) return;
+  map=L.map('cameraMap',{zoomControl:true}).setView(TARGET.coords,16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+}
+function setProcess(open,label,pct,sub){
+  $('mapProcess').classList.toggle('open',open);$('processLabel').textContent=label||'';$('processPct').textContent=(pct||0)+' %';$('processBar').style.width=(pct||0)+'%';$('processSub').textContent=sub||'';
+}
+async function searchCameras(){
+  const input=$('addressInput');
+  const address=input.value.trim()||TARGET.fallbackAddress;
+  input.value=address;
+  const btn=$('searchBtn');btn.disabled=true;btn.classList.add('processing');
+  $('mapCard').style.display='block';
+  await sleep(80); initMap(); map.invalidateSize();
+  $('analysisState').textContent='Probíhá vyhledávání';$('radiusText').textContent='500 m od zadaného objektu';
+  $('scanReticle').classList.add('active');
+  const stages=[
+    [8,'Převod adresy na lokalizační bod','Ověřování uličního a adresního registru…'],
+    [24,'Zaměřování objektu','Zpřesnění polohy předmětné budovy…'],
+    [42,'Dotaz do registru kamer','Městské kamerové body…'],
+    [61,'Dotaz do registru kamer','Připojené soukromé systémy…'],
+    [79,'Výpočet vzdáleností','Řazení bodů podle polohy…'],
+    [93,'Ověření dostupnosti metadat','Kontrola identifikátorů kamer…'],
+    [100,'Vyhledávání dokončeno','Nalezeno 6 kamerových bodů v okolí.']
+  ];
+  for(const s of stages){setProcess(true,s[1],s[0],s[2]);await sleep(430);}
+  if(targetMarker) map.removeLayer(targetMarker);
+  targetMarker=L.marker(TARGET.coords,{icon:targetIcon()}).addTo(map).bindPopup(`<strong>Předmětný objekt</strong><br>${escapeHtml(address)}`);
+  cameraMarkers.forEach(m=>map.removeLayer(m));cameraMarkers.length=0;
+  $('cameraList').innerHTML='';
+  for(let i=0;i<CAMERAS.length;i++){
+    const c=CAMERAS[i];
+    const marker=L.marker(c.coords,{icon:camIcon(c.id)}).addTo(map).on('click',()=>openCamera(c));cameraMarkers.push(marker);
+    const row=document.createElement('div');row.className='camera-row';row.innerHTML=`<div><strong>${c.id}</strong><span>${c.distance} m od objektu</span></div><div class="camera-chip">OTEVŘÍT</div>`;row.onclick=()=>openCamera(c);$('cameraList').appendChild(row);
+    await sleep(180);
+  }
+  const group=L.featureGroup([targetMarker,...cameraMarkers]);map.fitBounds(group.getBounds().pad(.20));
+  $('scanReticle').classList.remove('active');await sleep(250);setProcess(false,'',0,'');
+  $('analysisState').textContent='Nalezeno 6 kamerových bodů';btn.disabled=false;btn.classList.remove('processing');
+}
+
+async function openCamera(c){
+  selectedCamera=c;
+  $('cameraModalTitle').textContent=`${c.id} – kontrola kamerového bodu`;
+  $('cameraModalActions').innerHTML='<button class="modal-close" data-close="cameraModal" type="button">Zavřít</button>';
+  $('cameraModalBody').innerHTML='<div class="status-panel"><div class="status-code">OVĚŘOVÁNÍ KAMEROVÉHO BODU</div><strong>Načítání technických údajů…</strong><span>Směr záběru, stav zařízení a dostupnost archivu.</span></div>';
+  $('cameraModal').classList.add('open');
+  await sleep(700);
+  if(c.type==='blocked'){
+    $('cameraModalBody').innerHTML=`<div class="status-panel bad"><div class="status-code">VYHODNOCENÍ POLOHY / NEVYHOVUJE</div><strong>${c.id}</strong><span>${c.reason}</span></div>`;
+  }else if(c.type==='offline'){
+    $('cameraModalBody').innerHTML=`<div class="status-panel offline"><div class="status-code">TECHNICKÝ STAV / NEDOSTUPNÁ</div><strong>${c.id}</strong><span>Kamera mimo provoz od ${c.since}.</span></div>`;
+  }else{
+    $('cameraModalBody').innerHTML=`<div class="status-panel good"><div class="status-code">ARCHIVNÍ DATA / DOSTUPNÁ</div><strong>${c.id}</strong><span>Pro kamerový bod jsou dostupná archivní data. Pro otevření záznamu je nutné nastavit datum a čas incidentu.</span></div>`;
+    const b=document.createElement('button');b.className='action-btn';b.type='button';b.textContent='Přejít do archivu kamerového záznamu';b.onclick=()=>openTimeGate(c);$('cameraModalActions').prepend(b);
+  }
+  bindCloseButtons();
+}
+function openTimeGate(c){
+  selectedCamera=c;$('cameraModal').classList.remove('open');$('timeCameraName').textContent=c.id;$('incidentDate').value='';$('incidentTime').value='';$('timeError').classList.remove('show');$('timeModal').classList.add('open');
+}
+function loadArchive(){
+  if(!selectedCamera)return;
+  if($('incidentDate').value!==INCIDENT_DATE || $('incidentTime').value!==INCIDENT_TIME){$('timeError').classList.add('show');return;}
+  $('timeError').classList.remove('show');$('timeModal').classList.remove('open');showArchive(selectedCamera);
+}
+function showArchive(c){
+  $('mainView').style.display='none';$('archiveView').classList.add('open');
+  $('archiveTitle').textContent=`${c.id} – kamerový archiv`;
+  $('archiveSubtitle').textContent=`Relevantní úsek k incidentu ${INCIDENT_DATE_LABEL} ${INCIDENT_TIME}`;
+  $('metaCamera').textContent=c.id;$('metaTime').textContent=`${INCIDENT_DATE_LABEL} · ${RECORD_WINDOW}`;
+  $('archiveSource').src=c.video;$('archiveVideo').load();
+  $('identifyWrap').style.display=c.identify?'block':'none';$('identifyPanel').classList.remove('open');$('person1').value='';$('person2').value='';$('identifyResult').className='identify-result';$('identifyResult').textContent='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function verifyIdentity(){
+  const a=normalizeText($('person1').value),b=normalizeText($('person2').value);
+  const entered=[a,b].sort(),correct=CORRECT_IDENTITIES.slice().sort();
+  const ok=entered[0]&&entered[1]&&entered[0]===correct[0]&&entered[1]===correct[1];
+  const out=$('identifyResult');
+  if(ok){out.className='identify-result good';out.innerHTML='<strong>IDENTIFIKACE POTVRZENA</strong><br>Obě zadané osoby odpovídají evidenčním údajům.';}
+  else{out.className='identify-result bad';out.innerHTML='<strong>IDENTIFIKACE NEPOTVRZENA</strong><br>Zadaná dvojice osob neodpovídá dostupným evidenčním údajům.';}
+}
+function escapeHtml(s){return s.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function bindCloseButtons(){document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).classList.remove('open'));}
+
+$('searchBtn').addEventListener('click',searchCameras);
+$('addressInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchCameras();});
+$('loadArchiveBtn').addEventListener('click',loadArchive);
+['incidentDate','incidentTime'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')loadArchive();}));
+$('identifyBtn').addEventListener('click',()=>$('identifyPanel').classList.toggle('open'));
+$('verifyIdentity').addEventListener('click',verifyIdentity);
+$('backToMap').addEventListener('click',()=>{$('archiveVideo').pause();$('archiveView').classList.remove('open');$('mainView').style.display='block';setTimeout(()=>map&&map.invalidateSize(),50);window.scrollTo({top:0,behavior:'smooth'});});
+['cameraModal','timeModal'].forEach(id=>$(id).addEventListener('click',e=>{if(e.target===$(id))$(id).classList.remove('open');}));
+bindCloseButtons();
+</script>
+</body>
+</html>
