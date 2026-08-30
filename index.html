@@ -10,142 +10,148 @@
 
 <style>
 body {
-  margin:0;
-  font-family:Arial;
-  background:#f4f4f4;
+  margin: 0;
+  font-family: Arial;
+  background: #f4f4f4;
 }
 
 .topbar {
-  background:#0d47a1;
-  color:white;
-  height:80px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:26px;
-  font-weight:bold;
+  background: #0d47a1;
+  color: white;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: bold;
 }
 
 .box {
-  background:white;
-  max-width:1100px;
-  margin:30px auto;
-  border-radius:6px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.15);
+  background: white;
+  max-width: 1100px;
+  margin: 30px auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .box-header {
-  padding:20px;
-  border-bottom:1px solid #ddd;
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
 }
 
 .search-row {
-  display:flex;
-  gap:10px;
-  padding:20px;
+  display: flex;
+  gap: 10px;
+  padding: 20px;
 }
 
 input {
-  flex:1;
-  padding:12px;
-  font-size:16px;
-  border:1px solid #ccc;
-  border-radius:6px;
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
 button {
-  background:#0d47a1;
-  color:white;
-  border:none;
-  padding:0 20px;
-  border-radius:6px;
-  cursor:pointer;
+  background: #0d47a1;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 button:hover {
-  background:#08306b;
+  background: #08306b;
 }
 
 .results {
-  display:none;
-  padding:20px;
+  display: none;
+  padding: 20px;
 }
 
 table {
-  width:100%;
-  border-collapse:collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
-th, td {
-  padding:12px;
-  border-bottom:1px solid #ddd;
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
 }
 
 th {
-  text-align:left;
+  text-align: left;
 }
 
 a {
-  color:#0d47a1;
-  text-decoration:none;
+  color: #0d47a1;
+  text-decoration: none;
 }
 
 a:hover {
-  text-decoration:underline;
+  text-decoration: underline;
 }
 
 .badge {
-  background:#e3f2fd;
-  padding:4px 8px;
-  border-radius:4px;
+  background: #e3f2fd;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 /* ZPŘÍSTUPNĚNÁ ČÍSLA */
 .accessible-numbers {
-  margin:0 20px 25px 20px;
-  padding:20px;
-  background:#f7f9fc;
-  border:1px solid #d7e0ec;
-  border-left:5px solid #0d47a1;
-  border-radius:6px;
+  margin: 0 20px 25px 20px;
+  padding: 20px;
+  background: #f7f9fc;
+  border: 1px solid #d7e0ec;
+  border-left: 5px solid #0d47a1;
+  border-radius: 6px;
 }
 
 .accessible-numbers-title {
-  font-size:16px;
-  font-weight:bold;
-  margin-bottom:14px;
-  color:#222;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 14px;
+  color: #222;
 }
 
 .accessible-number-row {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 4px;
-  border-bottom:1px solid #e1e1e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid #e1e1e1;
 }
 
 .accessible-number-row:last-child {
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .accessible-number-name {
-  font-weight:bold;
-  color:#333;
+  font-weight: bold;
+  color: #333;
 }
 
 .accessible-number-phone {
-  color:#0d47a1;
-  font-weight:bold;
-  font-family:monospace;
-  font-size:15px;
+  color: #0d47a1;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 15px;
 }
 
-@media (max-width:650px) {
+.accessible-number-phone:hover {
+  color: #08306b;
+  text-decoration: underline;
+}
+
+@media (max-width: 650px) {
   .accessible-number-row {
-    flex-direction:column;
-    align-items:flex-start;
-    gap:5px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
   }
 }
 </style>
@@ -154,54 +160,62 @@ a:hover {
 <body>
 
 <div class="topbar">
-TKM - Telekomunikační modul telefonních čísel a hovorů
+  TKM - Telekomunikační modul telefonních čísel a hovorů
 </div>
 
 <div class="box">
 
-<div class="box-header">
-  <h2>Vyhledávání čísla</h2>
-  <p>Zadejte celé telefonní číslo (mezery ani +420 nevadí).</p>
-</div>
-
-<form class="search-row" onsubmit="searchNumber(); return false;">
-  <input
-    type="text"
-    id="userInput"
-    placeholder="např. +420 XXX XXX XXXX"
-  >
-  <button type="submit">Vyhledat</button>
-</form>
-
-<div class="results" id="results"></div>
-
-<div class="accessible-numbers">
-
-  <div class="accessible-numbers-title">
-    Byla vám zpřístupněna telefonní čísla:
+  <div class="box-header">
+    <h2>Vyhledávání čísla</h2>
+    <p>Zadejte celé telefonní číslo (mezery ani +420 nevadí).</p>
   </div>
 
-  <div class="accessible-number-row">
-    <span class="accessible-number-name">Tamara Vrbová</span>
-    <span class="accessible-number-phone">608 915 7734</span>
-  </div>
+  <form class="search-row" onsubmit="searchNumber(); return false;">
+    <input
+      type="text"
+      id="userInput"
+      placeholder="např. +420 XXX XXX XXXX"
+    >
+    <button type="submit">Vyhledat</button>
+  </form>
 
-  <div class="accessible-number-row">
-    <span class="accessible-number-name">Sebastian Rýdl</span>
-    <span class="accessible-number-phone">731 482 6905</span>
-  </div>
+  <div class="results" id="results"></div>
 
-  <div class="accessible-number-row">
-    <span class="accessible-number-name">Elvíra von den Linden</span>
-    <span class="accessible-number-phone">604 731 9826</span>
-  </div>
+  <div class="accessible-numbers">
 
-  <div class="accessible-number-row">
-    <span class="accessible-number-name">Damián Korda</span>
-    <span class="accessible-number-phone">777 286 4401</span>
-  </div>
+    <div class="accessible-numbers-title">
+      Byla vám zpřístupněna telefonní čísla:
+    </div>
 
-</div>
+    <div class="accessible-number-row">
+      <span class="accessible-number-name">Tamara Vrbová</span>
+      <a class="accessible-number-phone" href="6089157734.html">
+        608 915 7734
+      </a>
+    </div>
+
+    <div class="accessible-number-row">
+      <span class="accessible-number-name">Sebastian Rýdl</span>
+      <a class="accessible-number-phone" href="7314826905.html">
+        731 482 6905
+      </a>
+    </div>
+
+    <div class="accessible-number-row">
+      <span class="accessible-number-name">Elvíra von den Linden</span>
+      <a class="accessible-number-phone" href="6047319826.html">
+        604 731 9826
+      </a>
+    </div>
+
+    <div class="accessible-number-row">
+      <span class="accessible-number-name">Damián Korda</span>
+      <a class="accessible-number-phone" href="7772864401.html">
+        777 286 4401
+      </a>
+    </div>
+
+  </div>
 
 </div>
 
@@ -265,6 +279,7 @@ function searchNumber() {
 
   let html = `
     <p>Nalezené záznamy: <strong>${found.length}</strong></p>
+
     <table>
       <thead>
         <tr>
@@ -273,15 +288,20 @@ function searchNumber() {
           <th>Stav</th>
         </tr>
       </thead>
+
       <tbody>
   `;
 
   found.forEach(n => {
     html += `
       <tr>
-        <td><a href="${n.url}">${n.number}</a></td>
+        <td>
+          <a href="${n.url}">${n.number}</a>
+        </td>
         <td>${n.operator}</td>
-        <td><span class="badge">${n.status}</span></td>
+        <td>
+          <span class="badge">${n.status}</span>
+        </td>
       </tr>
     `;
   });
