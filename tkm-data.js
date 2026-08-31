@@ -88,7 +88,7 @@ window.TKM_DATA = {
       "activation": "2.11.2024",
       "registered": "ANO",
       "address": "Bruselská 76/14, Praha 2-Vinohrady",
-      "note": "Doplňte jméno a další údaje."
+      "note": ""
     },
     "ADRIAN": {
       "number": "732 654 1187",
