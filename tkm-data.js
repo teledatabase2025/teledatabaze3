@@ -8,7 +8,7 @@ window.TKM_DATA = {
       "type": "Tarifní SIM karta",
       "activation": "11. 9. 2017",
       "registered": "ANO",
-      "address": "Vinohradská 1642/72, Praha 2",
+      "address": "Londýnská 473/22, Praha 2",
       "main": true,
       "infoFile": "7314826905info.html",
       "profileFile": "sebastianrydl7314826905.html"
@@ -18,9 +18,9 @@ window.TKM_DATA = {
       "name": "Elvíra von den Linden",
       "operator": "OU Telecom",
       "type": "Tarifní SIM karta",
-      "activation": "3. 2. 2012",
+      "activation": "3. 2. 2001",
       "registered": "ANO",
-      "address": "Pod Kaštany 1120/18, Praha 6",
+      "address": "Pařížská 16/1, Praha 1",
       "main": true,
       "infoFile": "6047319826info.html",
       "profileFile": "elviravondelinden6047319826.html"
@@ -65,29 +65,29 @@ window.TKM_DATA = {
       "name": "Kristýna Doležalová",
       "operator": "OU Telecom",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "14.5.2020",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte vlastní údaje podle potřeby."
+      "address": "Holečkova 49, Praha 5",
+      "note": ""
     },
     "AUTOSERVIS": {
       "number": "604 822 1224",
       "name": "Autobazar Vopelák s.r.o.",
       "operator": "Redafone",
       "type": "Firemní tarif",
-      "activation": "DOPLNIT",
+      "activation": "13.9.2004",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte název a adresu autoservisu."
+      "address": "Chlumecká 756/5, Praha 14-Černý Most",
+      "note": ""
     },
     "SEB_FRIEND": {
       "number": "777 536 7833",
       "name": "Milan Mikula",
       "operator": "D-Mobile",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "2.11.2024",
       "registered": "ANO",
-      "address": "DOPLNIT",
+      "address": "Bruselská 76/14, Praha 2-Vinohrady",
       "note": "Doplňte jméno a další údaje."
     },
     "ADRIAN": {
@@ -95,50 +95,50 @@ window.TKM_DATA = {
       "name": "Adrian Sehnal",
       "operator": "D-Mobile",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "14. 3. 2018",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte vlastní údaje podle potřeby."
+      "address": "Korunní 1143/82, Praha 10",
+      "note": ""
     },
     "ELV_WORK1": {
       "number": "723 854 5516",
       "name": "Erika Nováková",
       "operator": "OU Telecom",
       "type": "Firemní tarif",
-      "activation": "DOPLNIT",
+      "activation": "7. 11. 2021",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Kontakt k pracovní zakázce. Doplňte vlastní údaje."
+      "address": "Na Zatlance 1350/13, Praha 5",
+      "note": ""
     },
     "ELV_CHARITY": {
       "number": "739 218 6405",
       "name": "Kamila Horáčková",
       "operator": "Redafone",
       "type": "Firemní tarif",
-      "activation": "DOPLNIT",
+      "activation": "22. 5. 2020",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte vlastní údaje podle potřeby."
+      "address": "Českomoravská 1181/21, Praha 9",
+      "note": ""
     },
     "ELV_OFFICE": {
       "number": "722 406 9813",
-      "name": "Pracovní kontakt",
+      "name": "Jitka Horská",
       "operator": "D-Mobile",
       "type": "Firemní tarif",
-      "activation": "DOPLNIT",
+      "activation": "9. 9. 2022",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Pracovní kontakt Elvíry von den Linden. Doplňte vlastní údaje."
+      "address": "Jana Masaryka 541/18, Praha 2",
+      "note": ""
     },
     "ELV_FRIEND": {
       "number": "606 118 4279",
       "name": "Marika Vosecká",
       "operator": "OU Telecom",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "16. 2. 2017",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte jméno a další údaje."
+      "address": "U Průhonu 1265/7, Praha 7",
+      "note": ""
     },
     "MAGDA": {
       "number": "603 781 2446",
@@ -146,70 +146,70 @@ window.TKM_DATA = {
       "label": "Hospodyně",
       "operator": "Redafone",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "28. 6. 2016",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Hospodyně Elvíry von den Linden. Doplňte příjmení a další údaje."
+      "address": "Krymská 238/18, Praha 10",
+      "note": ""
     },
     "TAM_WORK": {
       "number": "720 416 8352",
       "name": "Reality SysTem s.r.o.",
       "operator": "OU Telecom",
       "type": "Firemní tarif",
-      "activation": "DOPLNIT",
+      "activation": "3. 4. 2023",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Pracovní komunikační číslo. Doplňte vlastní údaje."
+      "address": "Vinohradská 2165/48, Praha 2",
+      "note": ""
     },
     "TAM_FRIEND": {
       "number": "728 995 3106",
       "name": "Eva Skopečková",
       "operator": "D-Mobile",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "19. 8. 2020",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Kamarádka – koncert / akce. Doplňte jméno a další údaje."
+      "address": "Poděbradská 1027/47, Praha 9",
+      "note": ""
     },
     "LAURA": {
       "number": "724 391 6027",
       "name": "Laura Váchová",
       "operator": "Redafone",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "12. 1. 2019",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte vlastní údaje podle potřeby."
+      "address": "Nad Štolou 672/8, Praha 7",
+      "note": ""
     },
     "DAM_MONEY": {
       "number": "734 880 2165",
       "name": "Marek Bureš",
       "operator": "D-Mobile",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "25. 10. 2024",
       "registered": "NEZJIŠTĚNO",
-      "address": "—",
-      "note": "Identita držitele není v dostupných datech uvedena."
+      "address": "Plzeňská 155/113, Praha 5",
+      "note": ""
     },
     "DAM_MEET": {
       "number": "706 331 9048",
       "name": "Klára Sehnalová",
       "operator": "OU Telecom",
       "type": "Předplacená SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "17. 5. 2026",
       "registered": "NEZJIŠTĚNO",
-      "address": "—",
-      "note": "Identita držitele není v dostupných datech uvedena."
+      "address": "Korunní 1143/82, Praha 10",
+      "note": ""
     },
     "ANDREA": {
       "number": "702 613 8854",
       "name": "Andrea Veselá",
       "operator": "D-Mobile",
       "type": "Tarifní SIM karta",
-      "activation": "DOPLNIT",
+      "activation": "6. 7. 2021",
       "registered": "ANO",
-      "address": "DOPLNIT",
-      "note": "Doplňte vlastní údaje podle potřeby."
+      "address": "Křižíkova 275/43, Praha 8",
+      "note": ""
     }
   },
   "mainKeys": [
