@@ -1,29 +1,44 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Informace o čísle | TKM</title>
-<link rel="stylesheet" href="tkm-new.css">
-</head>
-<body>
-<div class="topbar">TKM - Telekomunikační modul telefonních čísel a hovorů</div>
-<div class="container" style="max-width:1000px">
-  <div class="card">
-    <div class="card-header">
-      <p>Informace o telefonním čísle</p>
-      <h1 style="margin:0;color:#0d47a1">608 915 7734</h1>
-    </div>
-    <div class="info-grid">
-      <div class="info-box"><small>Operátor</small><strong>Redafone</strong></div>
-      <div class="info-box"><small>Typ</small><strong>Tarifní SIM karta</strong></div>
-      <div class="info-box"><small>Aktivace</small><strong>18. 8. 2019</strong></div>
-      <div class="info-box"><small>Registrovaný uživatel</small><span class="person-status">ANO</span></div>
-      <div class="info-box full"><small>Jméno</small><strong><a class="person-link">Tamara Vrbová</a></strong></div>
-      <div class="info-box full"><small>Adresa evidovaná u operátora</small><strong>Mánesova 742/16, Praha 2</strong></div>
-    </div>
-  </div>
-  <a class="back primary-back" id="backLink" href="6089157734.html">← Zpět na přehled hovorů a konverzací telefonního čísla 608 915 7734</a>
-</div>
-<script>const q=new URLSearchParams(location.search),b=q.get('back'),bn=q.get('backNumber'),a=document.getElementById('backLink');if(b&&a){a.href=b;a.textContent='← Na přehled hovorů a konverzací telefonního čísla '+(bn||'608 915 7734');}</script></body>
+<!DOCTYPE html> 
+<html lang="cs"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<title>Informace o čísle | TKM</title> 
+<link rel="stylesheet" href="tkm-new.css"> 
+</head> 
+<body> 
+<div class="topbar">TKM - Telekomunikační modul telefonních čísel a hovorů</div> 
+
+<div class="container" style="max-width:1000px"> 
+  <div class="card"> 
+    <div class="card-header"> 
+      <p>Informace o telefonním čísle</p> 
+      <h1 style="margin:0;color:#0d47a1">608 915 7734</h1> 
+    </div> 
+
+    <div class="info-grid"> 
+      <div class="info-box"><small>Operátor</small><strong>Redafone</strong></div> 
+      <div class="info-box"><small>Typ</small><strong>Tarifní SIM karta</strong></div> 
+      <div class="info-box"><small>Aktivace</small><strong>18. 8. 2019</strong></div> 
+      <div class="info-box"><small>Registrovaný uživatel</small><span class="person-status">ANO</span></div> 
+      <div class="info-box full"><small>Jméno</small><strong style="color:#000">Tamara Vrbová</strong></div> 
+      <div class="info-box full"><small>Adresa evidovaná u operátora</small><strong>Mánesova 742/16, Praha 2</strong></div> 
+    </div> 
+  </div> 
+
+  <a class="back primary-back" id="backLink" href="6089157734.html">← Zpět na přehled hovorů a konverzací telefonního čísla 608 915 7734</a> 
+</div> 
+
+<script>
+const q = new URLSearchParams(location.search),
+      b = q.get('back'),
+      bn = q.get('backNumber'),
+      a = document.getElementById('backLink');
+
+if (b && a) {
+  a.href = b;
+  a.textContent = '← Na přehled hovorů a konverzací telefonního čísla ' + (bn || '608 915 7734');
+}
+</script>
+</body> 
 </html>
