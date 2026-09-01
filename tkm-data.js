@@ -345,7 +345,7 @@ window.TKM_DATA = {
       "time": "09:11",
       "from": "HOST",
       "to": "SEBASTIAN",
-      "text": "Tak dnes ve 21:30.  55 666 777 88 66 66 66 444 / 458. Snad sis ještě nezapomněl hrát s tlačítky.",
+      "text": "Tak dnes ve 21:30.  55 666 777 88 66 66 444 / 458. Snad sis ještě nezapomněl hrát s tlačítky.",
       "suspicious": true,
       "recordId": "26060510002",
       "fromNumber": "725 449 1168",
