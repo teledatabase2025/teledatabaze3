@@ -67,8 +67,8 @@ window.TKM_DATA = {
       "type": "Tarifní SIM karta",
       "activation": "14.5.2020",
       "registered": "ANO",
-      "address": "Holečkova 49, Praha 5",
-      "note": ""
+      "address": "Holečkova 49, Praha 5-Smíchov",
+      "note": "-"
     },
     "AUTOSERVIS": {
       "number": "604 822 1224",
