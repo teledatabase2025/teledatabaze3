@@ -653,7 +653,7 @@ window.TKM_DATA = {
       "time": "13:36",
       "from": "TAMARA",
       "to": "KRISTYNA",
-      "text": "Můžeš mi prosím půjčit těch 80 tisíc, jak jsme se bavili? Budu ti to splácet? T.",
+      "text": "Můžeš mi prosím půjčit těch 120 tisíc, jak jsme se bavili? Budu ti to splácet? T.",
       "suspicious": false,
       "recordId": "26060710002",
       "fromNumber": "608 915 7734",
