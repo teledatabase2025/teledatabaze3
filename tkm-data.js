@@ -97,7 +97,7 @@ window.TKM_DATA = {
       "type": "Tarifní SIM karta",
       "activation": "14. 3. 2018",
       "registered": "ANO",
-      "address": "Korunní 1143/82, Praha 10",
+      "address": "Slezská 316/5, Praha 2-Vinohrady",
       "note": ""
     },
     "ELV_WORK1": {
