@@ -108,7 +108,7 @@ window.TKM_DATA = {
       "activation": "7. 11. 2021",
       "registered": "ANO",
       "address": "Na Zatlance 1350/13, Praha 5",
-      "note": ""
+      "note": "-"
     },
     "ELV_CHARITY": {
       "number": "739 218 6405",
@@ -118,7 +118,7 @@ window.TKM_DATA = {
       "activation": "22. 5. 2020",
       "registered": "ANO",
       "address": "Českomoravská 1181/21, Praha 9",
-      "note": ""
+      "note": "-"
     },
     "ELV_OFFICE": {
       "number": "722 406 9813",
@@ -128,7 +128,7 @@ window.TKM_DATA = {
       "activation": "9. 9. 2022",
       "registered": "ANO",
       "address": "Jana Masaryka 541/18, Praha 2",
-      "note": ""
+      "note": "-"
     },
     "ELV_FRIEND": {
       "number": "606 118 4279",
@@ -138,7 +138,7 @@ window.TKM_DATA = {
       "activation": "16. 2. 2017",
       "registered": "ANO",
       "address": "U Průhonu 1265/7, Praha 7",
-      "note": ""
+      "note": "-"
     },
     "MAGDA": {
       "number": "603 781 2446",
@@ -149,7 +149,7 @@ window.TKM_DATA = {
       "activation": "28. 6. 2016",
       "registered": "ANO",
       "address": "Krymská 238/18, Praha 10",
-      "note": ""
+      "note": "-"
     },
     "TAM_WORK": {
       "number": "720 416 8352",
