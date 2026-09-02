@@ -98,7 +98,7 @@ window.TKM_DATA = {
       "activation": "14. 3. 2018",
       "registered": "ANO",
       "address": "Slezská 316/5, Praha 2-Vinohrady",
-      "note": ""
+      "note": "-"
     },
     "ELV_WORK1": {
       "number": "723 854 5516",
