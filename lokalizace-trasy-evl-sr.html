@@ -136,8 +136,8 @@ tr:hover td { background:#f9fbff; }
 .address-input{display:block;width:100%;padding:14px 15px;border:1px solid #6683aa;border-radius:7px;background:#f8fbff;color:#111827;font-size:17px;outline:none}
 .address-input:focus{border-color:#90caf9;box-shadow:0 0 0 4px rgba(66,165,245,.2)}
 .address-single.hidden{display:none}
-.address-inputs-3{display:none;grid-template-columns:repeat(3,1fr);gap:10px}
-.address-inputs-3.open{display:grid}
+.address-inputs-2{display:none;grid-template-columns:repeat(2,1fr);gap:10px}
+.address-inputs-2.open{display:grid}
 .address-error{display:none;margin-top:13px;padding:12px 13px;border-left:4px solid #ef5350;border-radius:5px;background:rgba(183,28,28,.2);color:#ffcdd2;font-weight:800;line-height:1.4}
 .address-error.show{display:block}
 .address-error small{display:block;margin-top:4px;color:#e9b8b8;font-weight:500}
@@ -151,7 +151,7 @@ tr:hover td { background:#f9fbff; }
 .address-box.verified .address-head{background:linear-gradient(90deg,#2e7d32,#145a22)}
 @keyframes addressShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-13px)}40%{transform:translateX(11px)}60%{transform:translateX(-7px)}80%{transform:translateX(4px)}}
 @keyframes addressRedPulse{0%{opacity:.72}100%{opacity:0}}
-@media(max-width:600px){.address-title{font-size:20px}.address-inputs-3{grid-template-columns:1fr}.address-actions{flex-direction:column-reverse}.address-cancel,.address-submit{width:100%}}
+@media(max-width:600px){.address-title{font-size:20px}.address-inputs-2{grid-template-columns:1fr}.address-actions{flex-direction:column-reverse}.address-cancel,.address-submit{width:100%}}
 
 </style>
 </head>
@@ -196,8 +196,8 @@ tr:hover td { background:#f9fbff; }
             <div class="status-note" id="noteRoutes">Výpočet tras dosud nebyl proveden.</div>
           </div>
           <div class="action-wrap hidden" id="step4">
-            <button class="action-btn" id="btnAccident" type="button">Ověřit místo nehody zadáním tří ulic</button>
-            <div class="status-note" id="noteAccident">Pro zaměření zadejte všechny tři ulice do tří samostatných kolonek.</div>
+            <button class="action-btn" id="btnAccident" type="button">Ověřit místo nehody zadáním dvou ulic</button>
+            <div class="status-note" id="noteAccident">Pro zaměření zadejte obě ulice do dvou samostatných kolonek.</div>
           </div>
 
           <div class="points-box" id="pointsBox"></div>
@@ -222,10 +222,9 @@ tr:hover td { background:#f9fbff; }
       <div class="address-single" id="singleAddressWrap">
         <input class="address-input" id="addressInput" type="text" autocomplete="off" spellcheck="false" placeholder="Ulice a číslo domu">
       </div>
-      <div class="address-inputs-3" id="intersectionInputs">
+      <div class="address-inputs-2" id="intersectionInputs">
         <input class="address-input intersection-input" id="intersectionInput1" type="text" autocomplete="off" spellcheck="false" placeholder="První ulice">
         <input class="address-input intersection-input" id="intersectionInput2" type="text" autocomplete="off" spellcheck="false" placeholder="Druhá ulice">
-        <input class="address-input intersection-input" id="intersectionInput3" type="text" autocomplete="off" spellcheck="false" placeholder="Třetí ulice">
       </div>
       <div class="address-error" id="addressError">
         ADRESA NEBYLA POTVRZENA
@@ -273,8 +272,8 @@ const LOCATIONS = {
   },
   accident: {
     name: 'Místo nehody Sebastiana Rýdla',
-    address: 'křižovatka ulic Nádražní, Plzeňská a Štefánikova, Praha 5',
-    coords: [50.0721000, 14.4039600],
+    address: 'křižovatka ulic Holečkova a Štefánikova, Praha 5',
+    coords: [50.0784600, 14.4036900],
     code: '!'
   }
 };
@@ -906,8 +905,7 @@ const ADDRESS_RULES = {
 };
 
 const INTERSECTION_STREETS = [
-  {key:'nadrazni',pattern:/(^| )nadrazni(?= |$)/},
-  {key:'plzenska',pattern:/(^| )plzenska(?= |$)/},
+  {key:'holeckova',pattern:/(^| )holeckova(?= |$)/},
   {key:'stefanikova',pattern:/(^| )stefanikova(?= |$)/}
 ];
 
@@ -924,9 +922,9 @@ function normalizeAddress(value){
     .trim();
 }
 function intersectionIsValid(values){
-  if(values.length!==3||values.some(value=>!value))return false;
+  if(values.length!==2||values.some(value=>!value))return false;
   const matches=values.map(value=>INTERSECTION_STREETS.filter(street=>street.pattern.test(value)));
-  return matches.every(match=>match.length===1) && new Set(matches.map(match=>match[0].key)).size===3;
+  return matches.every(match=>match.length===1) && new Set(matches.map(match=>match[0].key)).size===2;
 }
 function requestAddress(key){
   if(busy||addressResolve)return Promise.resolve(false);
@@ -936,7 +934,7 @@ function requestAddress(key){
     key==='accident'?'Zadejte přesné místo nehody':`Zadejte adresu: ${loc.name}`;
   document.getElementById('addressInstruction').textContent=
     key==='accident'
-      ?'Zadejte všechny tři ulice, každou do samostatné kolonky. Na pořadí ulic nezáleží.'
+      ?'Zadejte obě ulice, každou do samostatné kolonky. Na pořadí ulic nezáleží.'
       :'Zadejte ulici a číslo domu. Nezáleží na velikosti písmen, diakritice ani uvedení městské části.';
   const input=document.getElementById('addressInput');
   const intersectionInputs=[...document.querySelectorAll('.intersection-input')];
@@ -948,7 +946,7 @@ function requestAddress(key){
   document.getElementById('singleAddressWrap').classList.toggle('hidden',isAccident);
   document.getElementById('intersectionInputs').classList.toggle('open',isAccident);
   document.getElementById('addressErrorDetail').textContent=isAccident
-    ?'Vyplňte všechny tři kolonky. Každá musí obsahovat právě jednu z hledaných ulic; jejich pořadí je libovolné.'
+    ?'Vyplňte obě kolonky. Každá musí obsahovat právě jednu z hledaných ulic; jejich pořadí je libovolné.'
     :'Zadaná ulice a číslo domu neodpovídají lokalizačním datům.';
   error.classList.remove('show');
   box.classList.remove('invalid','verified');
