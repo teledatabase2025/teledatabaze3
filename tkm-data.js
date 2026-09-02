@@ -159,7 +159,7 @@ window.TKM_DATA = {
       "activation": "3. 4. 2023",
       "registered": "ANO",
       "address": "Vinohradská 2165/48, Praha 2",
-      "note": ""
+      "note": "-"
     },
     "TAM_FRIEND": {
       "number": "728 995 3106",
@@ -169,7 +169,7 @@ window.TKM_DATA = {
       "activation": "19. 8. 2020",
       "registered": "ANO",
       "address": "Poděbradská 1027/47, Praha 9",
-      "note": ""
+      "note": "-"
     },
     "LAURA": {
       "number": "724 391 6027",
