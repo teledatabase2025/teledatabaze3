@@ -179,7 +179,7 @@ window.TKM_DATA = {
       "activation": "12. 1. 2019",
       "registered": "ANO",
       "address": "Nad Štolou 672/8, Praha 7",
-      "note": ""
+      "note": "-"
     },
     "DAM_MONEY": {
       "number": "734 880 2165",
@@ -189,7 +189,7 @@ window.TKM_DATA = {
       "activation": "25. 10. 2024",
       "registered": "NEZJIŠTĚNO",
       "address": "Plzeňská 155/113, Praha 5",
-      "note": ""
+      "note": "-"
     },
     "DAM_MEET": {
       "number": "706 331 9048",
@@ -198,8 +198,8 @@ window.TKM_DATA = {
       "type": "Předplacená SIM karta",
       "activation": "17. 5. 2026",
       "registered": "NEZJIŠTĚNO",
-      "address": "Korunní 1143/82, Praha 10",
-      "note": ""
+      "address": "Slezská 316/5, Praha 2-Vinohrady",
+      "note": "-"
     },
     "ANDREA": {
       "number": "702 613 8854",
@@ -209,7 +209,7 @@ window.TKM_DATA = {
       "activation": "6. 7. 2021",
       "registered": "ANO",
       "address": "Křižíkova 275/43, Praha 8",
-      "note": ""
+      "note": "-"
     }
   },
   "mainKeys": [
