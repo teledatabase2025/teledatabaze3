@@ -78,7 +78,7 @@ window.TKM_DATA = {
       "activation": "13.9.2004",
       "registered": "ANO",
       "address": "Chlumecká 756/5, Praha 14-Černý Most",
-      "note": ""
+      "note": "-"
     },
     "SEB_FRIEND": {
       "number": "777 536 7833",
@@ -88,7 +88,7 @@ window.TKM_DATA = {
       "activation": "2.11.2024",
       "registered": "ANO",
       "address": "Bruselská 76/14, Praha 2-Vinohrady",
-      "note": ""
+      "note": "-"
     },
     "ADRIAN": {
       "number": "732 654 1187",
