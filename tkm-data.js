@@ -304,8 +304,8 @@ window.TKM_DATA = {
       "text": "Dneska skvělej shopping! Díky a pa!",
       "suspicious": false,
       "recordId": "26060210008",
-      "fromNumber": "731 482 6905",
-      "toNumber": "730 558 1942"
+      "fromNumber": "730 558 1942",
+      "toNumber": "731 482 6905"
     },
     {
       "date": "3. 6. 2026",
