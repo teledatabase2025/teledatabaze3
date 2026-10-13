@@ -38,8 +38,8 @@ body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color
 .analysis-controls{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
 .analysis-shell{display:none;margin-top:14px;background:#0f1114;border-radius:10px;border:1px solid #2a2f36;padding:14px}
 .analysis-shell.open{display:block}
-.analysis-canvas-wrap{position:relative;background:#050505;border-radius:8px;overflow:hidden;border:1px solid #24282d;min-height:420px;display:flex;align-items:center;justify-content:center}
-.analysis-canvas{display:block;width:100%;height:auto;max-height:620px;background:#000}
+.analysis-canvas-wrap{position:relative;background:#050505;border-radius:8px;overflow:hidden;border:1px solid #24282d;min-height:0;display:flex;align-items:center;justify-content:center}
+.analysis-canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;max-height:620px;background:#000}
 .analysis-overlay{position:absolute;left:16px;top:16px;z-index:2;background:rgba(183,28,28,.9);color:#fff;border:1px solid rgba(255,255,255,.18);padding:8px 11px;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.08em;pointer-events:none}
 .analysis-status{margin-top:14px;background:#f7f9fc;border:1px solid #e5e7eb;border-radius:8px;padding:14px}
 .analysis-status strong{display:block;font-size:16px;margin-bottom:5px}
@@ -53,7 +53,7 @@ body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color
 .analysis-result-head span{display:block;color:#dfbcbc;font-size:12px;margin-top:3px}
 .analysis-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
 .analysis-card{border:1px solid #e5e7eb;border-radius:9px;overflow:hidden;background:#fff}
-.analysis-card img{display:block;width:100%;height:auto;background:#f4f4f4}
+.analysis-card img{display:block;width:100%;height:330px;object-fit:contain;background:#0b0d10}
 .analysis-card-body{padding:12px 13px}
 .analysis-card-body small{display:block;color:#777;margin-bottom:5px}
 .analysis-card-body strong{display:block;font-size:15px}
@@ -341,56 +341,86 @@ function getCanvasContext(){
   const canvas=$('analysisCanvas');
   return {canvas,ctx:canvas.getContext('2d')};
 }
-function drawPixelated(img,pixelSize=1,alpha=1,clear=true){
-  const {canvas,ctx}=getCanvasContext();
-  const w=img.naturalWidth||img.width;
-  const h=img.naturalHeight||img.height;
-  canvas.width=w; canvas.height=h;
-  if(clear) ctx.clearRect(0,0,w,h);
-  ctx.save();
-  ctx.globalAlpha=alpha;
-  ctx.imageSmoothingEnabled=false;
-  if(pixelSize<=1){
-    ctx.drawImage(img,0,0,w,h);
-  }else{
-    const sw=Math.max(1,Math.round(w/pixelSize));
-    const sh=Math.max(1,Math.round(h/pixelSize));
-    const off=document.createElement('canvas');
-    off.width=sw; off.height=sh;
-    const offCtx=off.getContext('2d');
-    offCtx.imageSmoothingEnabled=false;
-    offCtx.drawImage(img,0,0,sw,sh);
-    ctx.drawImage(off,0,0,sw,sh,0,0,w,h);
+/* Stabilní plátno 16:9: každý zdroj má vlastní poměr stran (contain). */
+const FRAME_W=1280,FRAME_H=720;
+const smooth=t=>t*t*(3-2*t);
+function viewFrame(img,zoom=1,panX=0,panY=0){
+  const iw=img.naturalWidth,ih=img.naturalHeight;
+  const scale=Math.min(FRAME_W/iw,FRAME_H/ih)*zoom;
+  return {w:iw*scale,h:ih*scale,x:(FRAME_W-iw*scale)/2+panX,y:(FRAME_H-ih*scale)/2+panY};
+}
+function frameBegin(){const {canvas,ctx}=getCanvasContext();
+  if(canvas.width!==FRAME_W||canvas.height!==FRAME_H){canvas.width=FRAME_W;canvas.height=FRAME_H;}
+  ctx.clearRect(0,0,FRAME_W,FRAME_H);ctx.fillStyle='#080d13';ctx.fillRect(0,0,FRAME_W,FRAME_H);return ctx;
+}
+function imageLayer(ctx,img,opacity=1,zoom=1,panX=0,panY=0){
+  const r=viewFrame(img,zoom,panX,panY);ctx.save();ctx.globalAlpha=opacity;
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,r.x,r.y,r.w,r.h);ctx.restore();return r;
+}
+function hud(ctx,t,label,scan=false){
+  ctx.save();ctx.strokeStyle='rgba(120,220,226,.75)';ctx.lineWidth=2;
+  const cx=FRAME_W/2,cy=FRAME_H/2,size=180+18*Math.sin(t*4);
+  // Zaměřovací značky, bez deformace záznamu.
+  for(let x of [-1,1])for(let y of [-1,1]){
+    const ax=cx+x*size,ay=cy+y*size;
+    ctx.beginPath();ctx.moveTo(ax,ay-y*30);ctx.lineTo(ax,ay);ctx.lineTo(ax-x*30,ay);ctx.stroke();
   }
+  ctx.strokeStyle='rgba(120,220,226,.23)';ctx.beginPath();ctx.moveTo(cx-15,cy);ctx.lineTo(cx+15,cy);ctx.moveTo(cx,cy-15);ctx.lineTo(cx,cy+15);ctx.stroke();
+  if(scan){const y=(t%1)*FRAME_H;let g=ctx.createLinearGradient(0,y-22,0,y+22);
+    g.addColorStop(0,'rgba(30,220,220,0)');g.addColorStop(.5,'rgba(70,230,225,.15)');g.addColorStop(1,'rgba(30,220,220,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,y-22,FRAME_W,44);ctx.strokeStyle='rgba(100,235,229,.65)';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(FRAME_W,y);ctx.stroke();}
+  ctx.fillStyle='rgba(5,12,19,.70)';ctx.fillRect(20,FRAME_H-59,510,36);
+  ctx.fillStyle='#9bdce0';ctx.font='600 17px monospace';ctx.fillText(label,34,FRAME_H-35);
   ctx.restore();
 }
-function drawBlendedPixelated(fromImg,toImg,blend,pixelSize){
-  const {canvas,ctx}=getCanvasContext();
-  const w=toImg.naturalWidth||toImg.width;
-  const h=toImg.naturalHeight||toImg.height;
-  canvas.width=w; canvas.height=h;
-  const pixelLayer=(img)=>{
-    const scale=Math.max(1,pixelSize);
-    const off=document.createElement('canvas');
-    off.width=Math.max(1,Math.round(w/scale));
-    off.height=Math.max(1,Math.round(h/scale));
-    const c=off.getContext('2d');
-    c.imageSmoothingEnabled=false;
-    c.drawImage(img,0,0,off.width,off.height);
-    return off;
-  };
-  const a=pixelLayer(fromImg), b=pixelLayer(toImg);
-  ctx.imageSmoothingEnabled=false;
-  ctx.globalAlpha=1;
-  ctx.drawImage(a,0,0,w,h);
-  ctx.globalAlpha=blend;
-  ctx.drawImage(b,0,0,w,h);
-  ctx.globalAlpha=1;
+async function showAnalysisFrame(key){
+  const img=await loadAnalysisImage(key),ctx=frameBegin();imageLayer(ctx,img);currentAnalysisImageKey=key;
 }
-async function showAnalysisFrame(key, pixelSize=1){
-  const img=await loadAnalysisImage(key);
-  drawPixelated(img,pixelSize);
-  currentAnalysisImageKey=key;
+// Přechod přibližování: plynulé kamerové přiblížení, uzamčení výřezu a krátký přechod do dalšího snímku.
+async function animateZoomStep(fromKey,toKey,opts){
+  const fromImg=await loadAnalysisImage(fromKey),toImg=await loadAnalysisImage(toKey);
+  const start=performance.now(),duration=opts.duration||3000;
+  await new Promise(resolve=>{function tick(now){
+    const t=Math.min(1,(now-start)/duration),ctx=frameBegin(),e=smooth(Math.min(1,t/.80));
+    // Zoom nikdy nemění poměr stran obrazu.
+    imageLayer(ctx,fromImg,1,1+e*.16,-e*16,-e*7);
+    if(t>.77){const mix=smooth((t-.77)/.23);ctx.fillStyle='rgba(5,12,19,'+(mix*.82)+')';ctx.fillRect(0,0,FRAME_W,FRAME_H);
+      imageLayer(ctx,toImg,mix);}
+    hud(ctx,t*3,opts.hud||'TRACKING / ROI LOCK');
+    setAnalysisStatus(opts.label,opts.detail,opts.progressStart+(opts.progressEnd-opts.progressStart)*t);
+    if(t<1)requestAnimationFrame(tick);else resolve();
+  }requestAnimationFrame(tick)});
+  await showAnalysisFrame(toKey);
+  currentAnalysisImageKey=toKey;
+}
+// Čištění: časově náročná simulace registrace snímků, redukce šumu a postupné odkrývání sektorů.
+async function animateReconstruction(){
+  const old=await loadAnalysisImage('zoom3'),clean=await loadAnalysisImage('clean');
+  const tiles=Array.from({length:18*10},(_,i)=>({i,rank:((i*73)%181)/181}));
+  const start=performance.now(),duration=12000;
+  await new Promise(resolve=>{function tick(now){
+    const t=Math.min(1,(now-start)/duration),ctx=frameBegin();
+    imageLayer(ctx,old);
+    const r=viewFrame(clean),cols=18,rows=10;
+    ctx.save();ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();
+    // Čistý obraz se objevuje postupně v analyzovaných sektorech.
+    for(const tile of tiles){const progress=(t-tile.rank*.72)/.28;
+      if(progress<=0)continue;
+      const c=tile.i%cols,row=Math.floor(tile.i/cols),sw=clean.naturalWidth/cols,sh=clean.naturalHeight/rows;
+      const sx=c*sw,sy=row*sh,dw=r.w/cols,dh=r.h/rows;
+      ctx.globalAlpha=Math.min(1,progress);
+      ctx.drawImage(clean,sx,sy,sw,sh,r.x+c*dw,r.y+row*dh,dw+.6,dh+.6);
+    }
+    ctx.restore();
+    // Mírný analytický šum pouze na nedokončeném snímku, bez plošného rozkostičkování.
+    if(t<.93){ctx.save();ctx.globalAlpha=(1-t)*.14;ctx.fillStyle='#9bdce0';
+      for(let i=0;i<34;i++){const x=((i*107+(Math.floor(t*30)*59))%FRAME_W),y=((i*79+Math.floor(t*24)*23)%FRAME_H);ctx.fillRect(x,y,2,2);}ctx.restore();}
+    hud(ctx,t*2,'RECONSTRUCTION / DENOISE / FRAME FUSION',true);
+    const stage=t<.33?'Registrace obrazových dat a stabilizace…':t<.72?'Redukce šumu a rekonstrukce detailů…':'Skládání finálního rekonstruovaného snímku…';
+    setAnalysisStatus('Rekonstrukce obrazu',stage,100*t);
+    if(t<1)requestAnimationFrame(tick);else resolve();
+  }requestAnimationFrame(tick)});
+  await showAnalysisFrame('clean');
 }
 function resetAnalysisUI(){
   analysisBusy=false;
@@ -418,7 +448,7 @@ async function startFindPersons(){
   $('cleanAnalysisBtn').style.display='none';
   $('identifyPersonBtn').style.display='none';
   setAnalysisStatus('Vyhledávání osob na záznamu','Načítá se referenční snímek s detekovanými osobami.',12);
-  await showAnalysisFrame('overview',1);
+  try{await showAnalysisFrame('overview');}catch(e){setAnalysisStatus('Chyba načítání','Obrázek se nepodařilo načíst z GitHubu.',0);analysisBusy=false;$('findPersonsBtn').style.display='inline-flex';return;}
   await sleep(450);
   setAnalysisStatus('Osoby nalezeny','Systém vybral relevantní část záznamu. Pokračujte přibližovací analýzou.',100);
   $('zoomAnalysisBtn').style.display='inline-flex';
@@ -450,51 +480,27 @@ async function animateTransition(fromKey,toKey,opts={}){
   });
 }
 async function startZoomAnalysis(){
-  if(analysisBusy) return;
-  analysisBusy=true;
-  $('zoomAnalysisBtn').style.display='none';
-  $('cleanAnalysisBtn').style.display='none';
-  $('identifyPersonBtn').style.display='none';
-  await animateTransition('overview','zoom1',{
-    duration:2600, startPx:2, peakPx:24, endPx:7,
-    progressStart:0, progressEnd:33,
-    label:'Přibližovací analýza – krok 1/3',
-    detail:'Izolace sledované osoby z celkového záběru.'
-  });
-  await sleep(280);
-  await animateTransition('zoom1','zoom2',{
-    duration:2400, startPx:7, peakPx:26, endPx:8,
-    progressStart:33, progressEnd:66,
-    label:'Přibližovací analýza – krok 2/3',
-    detail:'Přepočet detailu postavy a stabilizace výřezu.'
-  });
-  await sleep(280);
-  await animateTransition('zoom2','zoom3',{
-    duration:2400, startPx:8, peakPx:28, endPx:9,
-    progressStart:66, progressEnd:100,
-    label:'Přibližovací analýza – krok 3/3',
-    detail:'Maximální přiblížení oblasti obličeje.'
-  });
-  await sleep(300);
-  setAnalysisStatus('Přibližovací analýza dokončena','Cílová oblast byla izolována. Lze spustit čistící analýzu obrazu.',100);
-  $('cleanAnalysisBtn').style.display='inline-flex';
-  analysisBusy=false;
+  if(analysisBusy)return;analysisBusy=true;
+  $('zoomAnalysisBtn').style.display='none';$('cleanAnalysisBtn').style.display='none';$('identifyPersonBtn').style.display='none';
+  try{
+    await animateZoomStep('overview','zoom1',{duration:3200,progressStart:0,progressEnd:33,label:'Přibližovací analýza – 1/3',detail:'Vymezení oblasti zájmu a sledování osoby.',hud:'ROI / SUBJECT ACQUIRED'});
+    await sleep(450);
+    await animateZoomStep('zoom1','zoom2',{duration:3200,progressStart:33,progressEnd:66,label:'Přibližovací analýza – 2/3',detail:'Stabilizace výřezu a další digitální přiblížení.',hud:'IMAGE STABILIZATION / ZOOM'});
+    await sleep(450);
+    await animateZoomStep('zoom2','zoom3',{duration:3200,progressStart:66,progressEnd:100,label:'Přibližovací analýza – 3/3',detail:'Izolace oblasti obličeje.',hud:'FACE REGION / LOCKED'});
+    setAnalysisStatus('Přibližovací analýza dokončena','Oblast obličeje je připravena k rekonstrukci.',100);
+    $('cleanAnalysisBtn').style.display='inline-flex';
+  }catch(e){setAnalysisStatus('Chyba načítání snímku','Ověřte dostupnost obrázků na GitHubu.',0);console.error(e);$('zoomAnalysisBtn').style.display='inline-flex';}
+  finally{analysisBusy=false;}
 }
 async function startCleanAnalysis(){
-  if(analysisBusy) return;
-  analysisBusy=true;
-  $('cleanAnalysisBtn').style.display='none';
-  $('identifyPersonBtn').style.display='none';
-  await animateTransition('zoom3','clean',{
-    duration:7600, startPx:11, peakPx:34, endPx:1,
-    progressStart:0, progressEnd:100,
-    label:'Čistící analýza obrazu',
-    detail:'Probíhá náročná rekonstrukce detailu obličeje, redukce šumu a zpřesnění hran.'
-  });
-  await sleep(450);
-  setAnalysisStatus('Čistící analýza dokončena','Rekonstruovaný obličej je připraven k identifikačnímu porovnání.',100);
-  $('identifyPersonBtn').style.display='inline-flex';
-  analysisBusy=false;
+  if(analysisBusy)return;analysisBusy=true;
+  $('cleanAnalysisBtn').style.display='none';$('identifyPersonBtn').style.display='none';
+  try{await animateReconstruction();
+    setAnalysisStatus('Rekonstrukce dokončena','Snímek připraven k identifikačnímu porovnání.',100);
+    $('identifyPersonBtn').style.display='inline-flex';
+  }catch(e){setAnalysisStatus('Chyba rekonstrukce','Nepodařilo se načíst výsledný snímek.',0);console.error(e);$('cleanAnalysisBtn').style.display='inline-flex';}
+  finally{analysisBusy=false;}
 }
 async function identifyPerson(){
   if(analysisBusy) return;
