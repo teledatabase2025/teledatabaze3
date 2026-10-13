@@ -118,6 +118,11 @@ body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color
           Váš prohlížeč nepodporuje přehrávání videa.
         </video>
       </div>
+      <div class="video-meta">
+        <div><small>Kamera</small><strong id="metaCamera">—</strong></div>
+        <div><small>Časový úsek</small><strong id="metaTime">—</strong></div>
+        <div><small>Režim</small><strong>Archiv / obrazová analýza</strong></div>
+      </div>
       <div class="analysis-shell" id="analysisShell">
         <div class="analysis-canvas-wrap">
           <div class="analysis-overlay" id="analysisOverlay">ANALÝZA OBRAZU</div>
@@ -140,14 +145,14 @@ body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color
           </div>
           <div class="analysis-compare">
             <div class="analysis-card">
-              <img src="analysis-5-clean.png" alt="Analyzovaná osoba" id="analysisSuspectPreview">
+              <img src="https://teledatabase2025.github.io/teledatabaze3/analysis-5-clean.png" alt="Analyzovaná osoba" id="analysisSuspectPreview">
               <div class="analysis-card-body">
                 <small>Analyzovaný záznam</small>
                 <strong>Rekonstruovaný obličej zachycené osoby</strong>
               </div>
             </div>
             <div class="analysis-card">
-              <img src="vavra-reference.png" alt="npor. Petr Vávra">
+              <img src="https://teledatabase2025.github.io/teledatabaze3/vavra-reference.png" alt="npor. Petr Vávra">
               <div class="analysis-card-body">
                 <small>Referenční osoba</small>
                 <strong>npor. Petr Vávra</strong>
@@ -209,12 +214,12 @@ const INCIDENT_TIME = '22:18';
 const RECORD_WINDOW = '22:13–22:23';
 
 const ANALYSIS_IMAGES = {
-  overview:'analysis-1-overview.png',
-  zoom1:'analysis-2-zoom-1.png',
-  zoom2:'analysis-3-zoom-2.png',
-  zoom3:'analysis-4-zoom-3.png',
-  clean:'analysis-5-clean.png',
-  reference:'vavra-reference.png'
+  overview:'https://teledatabase2025.github.io/teledatabaze3/analysis-1-overview.png',
+  zoom1:'https://teledatabase2025.github.io/teledatabaze3/analysis-2-zoom-1.png',
+  zoom2:'https://teledatabase2025.github.io/teledatabaze3/analysis-3-zoom-2.png',
+  zoom3:'https://teledatabase2025.github.io/teledatabaze3/analysis-4-zoom-3.png',
+  clean:'https://teledatabase2025.github.io/teledatabaze3/analysis-5-clean.png',
+  reference:'https://teledatabase2025.github.io/teledatabaze3/vavra-reference.png'
 };
 
 const CAMERAS = [
@@ -361,12 +366,26 @@ function drawPixelated(img,pixelSize=1,alpha=1,clear=true){
 }
 function drawBlendedPixelated(fromImg,toImg,blend,pixelSize){
   const {canvas,ctx}=getCanvasContext();
-  const w=toImg.naturalWidth||toImg.width||fromImg.naturalWidth||fromImg.width;
-  const h=toImg.naturalHeight||toImg.height||fromImg.naturalHeight||fromImg.height;
+  const w=toImg.naturalWidth||toImg.width;
+  const h=toImg.naturalHeight||toImg.height;
   canvas.width=w; canvas.height=h;
-  ctx.clearRect(0,0,w,h);
-  drawPixelated(fromImg,pixelSize,1-blend,false);
-  drawPixelated(toImg,pixelSize,blend,false);
+  const pixelLayer=(img)=>{
+    const scale=Math.max(1,pixelSize);
+    const off=document.createElement('canvas');
+    off.width=Math.max(1,Math.round(w/scale));
+    off.height=Math.max(1,Math.round(h/scale));
+    const c=off.getContext('2d');
+    c.imageSmoothingEnabled=false;
+    c.drawImage(img,0,0,off.width,off.height);
+    return off;
+  };
+  const a=pixelLayer(fromImg), b=pixelLayer(toImg);
+  ctx.imageSmoothingEnabled=false;
+  ctx.globalAlpha=1;
+  ctx.drawImage(a,0,0,w,h);
+  ctx.globalAlpha=blend;
+  ctx.drawImage(b,0,0,w,h);
+  ctx.globalAlpha=1;
 }
 async function showAnalysisFrame(key, pixelSize=1){
   const img=await loadAnalysisImage(key);
@@ -377,6 +396,7 @@ function resetAnalysisUI(){
   analysisBusy=false;
   currentAnalysisImageKey='overview';
   $('videoShell').style.display='block';
+  $('findPersonsBtn').style.display='inline-flex';
   $('analysisShell').classList.remove('open');
   $('archiveHelp').style.display='block';
   $('zoomAnalysisBtn').style.display='none';
@@ -389,6 +409,7 @@ async function startFindPersons(){
   if(analysisBusy) return;
   analysisBusy=true;
   $('archiveVideo').pause();
+  $('findPersonsBtn').style.display='none';
   $('videoShell').style.display='none';
   $('analysisShell').classList.add('open');
   $('archiveHelp').style.display='none';
@@ -423,7 +444,7 @@ async function animateTransition(fromKey,toKey,opts={}){
       drawBlendedPixelated(fromImg,toImg,t,pixelSize);
       setAnalysisStatus(label,detail,progressStart+(progressEnd-progressStart)*t);
       if(t<1) requestAnimationFrame(step);
-      else { currentAnalysisImageKey=toKey; resolve(); }
+      else { currentAnalysisImageKey=toKey; drawPixelated(toImg,opts.endPx||1); resolve(); }
     };
     requestAnimationFrame(step);
   });
