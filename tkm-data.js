@@ -499,7 +499,7 @@ window.TKM_DATA = {
       "time": "12:10",
       "from": "ELV_FRIEND",
       "to": "ELVIRA",
-      "text": "Nemůžu uvěřit, že jsi to skutečně sepsala! Varovala jsem Tě, a to ne jenom já, ale i Nora. Je s Tebou jenom kvůli tvému majetku.",
+      "text": "Elvírko, všechno nejlepší k Tvým 48. narozeninám. Mám Tě ráda, ale nemůžu uvěřit, že jsi to skutečně sepsala! Varovala jsem Tě, a to ne jenom já, ale i Nora. Je s Tebou jenom kvůli tvému majetku.",
       "suspicious": false,
       "recordId": "26060110004",
       "fromNumber": "606 118 4279",
