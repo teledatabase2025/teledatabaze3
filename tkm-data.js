@@ -312,7 +312,7 @@ window.TKM_DATA = {
       "time": "11:15",
       "from": "SEBASTIAN",
       "to": "KRISTYNA",
-      "text": "Už jsi poslala tu přihlášku? Uvidíme se tam? Bez Mlsné Lišky by to nebylo ono.",
+      "text": "Už jsi poslala tu přihlášku? Uvidíme se tam? Bez mlsalky by to nebylo ono.",
       "suspicious": false,
       "recordId": "26060310015",
       "fromNumber": "731 482 6905",
