@@ -140,9 +140,9 @@ window.TKM_DATA = {
       "address": "U Průhonu 1265/7, Praha 7",
       "note": "-"
     },
-    "MAGDA": {
+    "JANA": {
       "number": "603 781 2446",
-      "name": "Blanka Šťastná",
+      "name": "Jana Horská",
       "label": "Hospodyně",
       "operator": "Redafone",
       "type": "Tarifní SIM karta",
