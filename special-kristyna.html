@@ -4,7 +4,7 @@
 <div class="special"><strong>Speciální výpis telekomunikačního provozu</strong>Výhradně 9. 6. 2026 · samostatný vyšetřovací přístup</div>
 <div class="card"><div class="card-header"><div class="number-line"><div><p>Telefonní číslo</p><a id="mainNumber" class="number" href="#"></a><p id="ownerLabel" class="muted"></p></div><span class="status restricted">Speciální přístup</span></div></div><div class="stats"><div class="stat"><small>Období</small><strong class="dateflag">9. 6. 2026</strong></div><div class="stat"><small>Hovory</small><strong id="callCount"></strong></div><div class="stat"><small>Konverzace</small><strong id="smsCount"></strong></div><div class="stat"><small>Dostupnost</small><strong>Přepis / audio</strong></div></div><div class="notice">Výpis obsahuje existující komunikaci za uvedený den a doplňkové záznamy. Audio přehrávač je připraven k vložení nahrávek.</div></div>
 <div class="card"><div class="card-header"><h2>Záznamy hovorů – 9. 6. 2026</h2><p>Každý hovor má samostatné ID. Telefonní čísla lze rozkliknout.</p></div><div class="table-wrap"><table><thead><tr><th>Datum</th><th>Čas</th><th>Telefonní číslo</th><th>ID hovoru</th><th>Typ</th><th>Délka</th><th>Záznam</th></tr></thead><tbody id="callsBody"></tbody></table></div></div>
-<div class="card"><div class="card-header"><h2>SMS konverzace – 9. 6. 2026 (vyskakovací okno)</h2><p>Otevřít lze pouze komunikaci z uvedeného dne.</p></div><div class="table-wrap"><table><thead><tr><th>Telefonní číslo</th><th>První SMS</th><th>Poslední SMS</th><th>Počet SMS</th><th>Záznam</th></tr></thead><tbody id="smsBody"></tbody></table></div></div>
+<div class="card"><div class="card-header"><h2>SMS konverzace – 9. 6. 2026</h2><p>Otevřít lze pouze komunikaci z uvedeného dne.</p></div><div class="table-wrap"><table><thead><tr><th>Telefonní číslo</th><th>První SMS</th><th>Poslední SMS</th><th>Počet SMS</th><th>Záznam</th></tr></thead><tbody id="smsBody"></tbody></table></div></div>
 </div><div class="modal-backdrop" id="audioModal"><div class="modal"><div class="modal-head">Zvukový záznam hovoru</div><div class="modal-body"><div id="audioInfo"></div><audio id="player" controls preload="none"></audio><div id="audioStatus" class="audio-note"></div></div><div class="modal-actions"><button class="modal-close" type="button">Zavřít</button></div></div></div>
 <style>
 /* Převzato ze vzhledu původního sms-detail.html */
@@ -189,7 +189,7 @@ const time=x=>x.time;
 const info=key=>{const c=contacts[key];const params=new URLSearchParams({view:'info',contact:key});return file+'?'+params.toString()};
 const num=key=>'<a class="phone-link" href="'+info(key)+'">'+esc(contacts[key].number)+'</a>';
 const params=new URLSearchParams(location.search),view=params.get('view');
-if(view==='sms'){history.replaceState(null,'',file);}
+// SMS se zobrazují výhradně ve vyskakovacím okně, nikoli jako samostatná stránka.
 if(view==='info'){
   document.querySelector('.container').innerHTML='<div id="detailContent"></div>';
   document.querySelectorAll('.modal-backdrop').forEach(el=>el.remove());
@@ -200,12 +200,6 @@ if(view==='info'){
     if(!c){content.innerHTML='<div class="card"><div class="card-header"><h1>Číslo nebylo nalezeno</h1></div></div>'+back;return;}
     const item=(label,value)=>'<div class="info-box"><small>'+label+'</small><strong>'+esc(value||'—')+'</strong></div>';
     content.innerHTML='<div class="card"><div class="card-header"><p>Informace o telefonním čísle</p><h1>'+esc(c.number)+'</h1></div><div class="info-grid">'+item('Jméno / označení',c.name)+item('Operátor',c.operator)+item('Typ SIM karty',c.type)+item('Datum aktivace',c.activation)+item('Registrovaný uživatel',c.registered)+item('Adresa evidovaná u operátora',c.address)+item('Poznámka',c.note||'Bez dalších údajů')+'</div></div>'+back;
-  }else{
-    const other=params.get('other'),them=contacts[other];
-    const thread=[...D.messages,...S.messages].filter(x=>x.date===date&&((x.from===owner&&x.to===other)||(x.to===owner&&x.from===other))).sort((a,b)=>a.time.localeCompare(b.time));
-    if(!them){content.innerHTML='<div class="card"><div class="card-header"><h1>Konverzace nebyla nalezena</h1></div></div>'+back;return;}
-    const bubble=x=>'<div class="sms-bubble '+(x.from===owner?'sms-out':'')+'"><small>'+esc(x.date)+' · '+esc(x.time)+' · '+(x.from===owner?'Odchozí':'Příchozí')+' · ID '+esc(x.recordId||'—')+'</small><p>'+esc(x.text)+'</p></div>';
-    content.innerHTML='<div class="card"><div class="card-header"><p>SMS komunikace – 9. 6. 2026</p><h1>Celá konverzace</h1><p>'+num(owner)+' ↔ '+num(other)+'</p></div><div style="padding:18px 24px">'+(thread.length?thread.map(bubble).join(''):'<p>V uvedený den nebyly nalezeny žádné zprávy.</p>')+'</div></div>'+back;
   }
   return;
 }
@@ -221,12 +215,15 @@ document.querySelectorAll('.open-audio').forEach(b=>b.addEventListener('click',(
 modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.contains('modal-close')){player.pause();modal.classList.remove('open')}});
 
 const smsModal=document.getElementById('smsModal');
-document.querySelectorAll('.open-sms').forEach(b=>b.addEventListener('click',()=>{
+document.getElementById('smsBody').addEventListener('click',e=>{
+const b=e.target.closest('button.open-sms');
+if(!b)return;
+e.preventDefault();e.stopPropagation();
 const other=b.dataset.other,items=groups.get(other)||[];
 document.getElementById('smsInfo').innerHTML=num(owner)+' ↔ '+num(other);
 document.getElementById('smsMessages').innerHTML=items.map(x=>'<div class="sms-bubble '+(x.from===owner?'out':'in')+'"><div class="sms-top"><span><strong>'+(x.from===owner?'Odchozí':'Příchozí')+'</strong> · '+esc(x.date)+', '+esc(x.time)+'</span><span class="sms-id">ID '+esc(x.recordId||'—')+'</span></div><div class="sms-text">'+esc(x.text)+'</div></div>').join('');
 smsModal.classList.add('open');
-}));
+});
 smsModal.addEventListener('click',e=>{if(e.target===smsModal||e.target.classList.contains('modal-close'))smsModal.classList.remove('open')});
 })();
 </script></body></html>
