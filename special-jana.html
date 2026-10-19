@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Speciální výpis | TKM</title><link rel="stylesheet" href="tkm-new.css"><style>
+.special{background:#fff8e8;border-left:5px solid #bc7716;padding:14px 20px;margin:18px 0;border-radius:7px}.special strong{display:block;font-size:17px;margin-bottom:3px}.muted{color:#667085}.record-id{font-family:Consolas,monospace;white-space:nowrap;font-weight:700}.dateflag{font-weight:800;color:#885000}.audio-note{font-size:14px;color:#475467;margin-top:10px}.modal-body audio{display:block;width:100%;margin:14px 0}.action:disabled{opacity:.5;cursor:not-allowed}
+</style></head><body><div class="topbar">TKM - Telekomunikační modul telefonních čísel a hovorů</div><div class="container">
+<div class="special"><strong>Speciální výpis telekomunikačního provozu</strong>Výhradně 9. 6. 2026 · samostatný vyšetřovací přístup</div>
+<div class="card"><div class="card-header"><div class="number-line"><div><p>Telefonní číslo</p><a id="mainNumber" class="number" href="#"></a><p id="ownerLabel" class="muted"></p></div><span class="status restricted">Speciální přístup</span></div></div><div class="stats"><div class="stat"><small>Období</small><strong class="dateflag">9. 6. 2026</strong></div><div class="stat"><small>Hovory</small><strong id="callCount"></strong></div><div class="stat"><small>Konverzace</small><strong id="smsCount"></strong></div><div class="stat"><small>Dostupnost</small><strong>Přepis / audio</strong></div></div><div class="notice">Výpis obsahuje existující komunikaci za uvedený den a doplňkové záznamy. Audio přehrávač je připraven k vložení nahrávek.</div></div>
+<div class="card"><div class="card-header"><h2>Záznamy hovorů – 9. 6. 2026</h2><p>Každý hovor má samostatné ID. Telefonní čísla lze rozkliknout.</p></div><div class="table-wrap"><table><thead><tr><th>Datum</th><th>Čas</th><th>Telefonní číslo</th><th>ID hovoru</th><th>Typ</th><th>Délka</th><th>Záznam</th></tr></thead><tbody id="callsBody"></tbody></table></div></div>
+<div class="card"><div class="card-header"><h2>SMS konverzace – 9. 6. 2026</h2><p>Otevřít lze pouze komunikaci z uvedeného dne.</p></div><div class="table-wrap"><table><thead><tr><th>Telefonní číslo</th><th>První SMS</th><th>Poslední SMS</th><th>Počet SMS</th><th>Záznam</th></tr></thead><tbody id="smsBody"></tbody></table></div></div>
+</div><div class="modal-backdrop" id="audioModal"><div class="modal"><div class="modal-head">Zvukový záznam hovoru</div><div class="modal-body"><div id="audioInfo"></div><audio id="player" controls preload="none"></audio><div id="audioStatus" class="audio-note"></div></div><div class="modal-actions"><button class="modal-close" type="button">Zavřít</button></div></div></div>
+<style>.sms-bubble{margin:10px 0;padding:13px 16px;border-radius:9px;border:1px solid #dde3eb;background:#f4f7fb}.sms-bubble.sms-out{margin-left:12%;background:#eaf3ff}.sms-bubble small{display:block;color:#667085;margin-bottom:5px}.sms-bubble p{margin:0;white-space:pre-wrap}#smsMessages{max-height:60vh;overflow:auto}</style><div class="modal-backdrop" id="smsModal"><div class="modal"><div class="modal-head">SMS konverzace – 9. 6. 2026</div><div class="modal-body"><p id="smsInfo"></p><div id="smsMessages"></div></div><div class="modal-actions"><button type="button" class="modal-close">Zavřít</button></div></div></div><script src="tkm-data.js"></script><script>
+window.TKM_SPECIAL = {
+  "contacts": {
+    "KR_FRIEND": {
+      "number": "732 640 1185",
+      "name": "Barbora Černá",
+      "operator": "Redafone",
+      "type": "Tarifní SIM karta",
+      "activation": "4. 3. 2021",
+      "registered": "ANO",
+      "address": "Praha 3, Žižkov",
+      "note": ""
+    },
+    "KR_SERVICE": {
+      "number": "777 420 6831",
+      "name": "Studio Zahradní",
+      "operator": "D-Mobile",
+      "type": "Firemní tarif",
+      "activation": "12. 2. 2024",
+      "registered": "ANO",
+      "address": "Praha 2, Vinohrady",
+      "note": ""
+    },
+    "JANA_FRIEND": {
+      "number": "725 960 1378",
+      "name": "Věra Novotná",
+      "operator": "OU Telecom",
+      "type": "Tarifní SIM karta",
+      "activation": "6. 5. 2018",
+      "registered": "ANO",
+      "address": "Praha 10, Vršovice",
+      "note": ""
+    },
+    "JANA_UNKNOWN": {
+      "number": "739 226 5081",
+      "name": "Majitel nezjištěn",
+      "operator": "Redafone",
+      "type": "Předplacená SIM karta",
+      "activation": "Nezjištěno",
+      "registered": "NE",
+      "address": "—",
+      "note": "K předplacené SIM kartě není veden registrovaný uživatel."
+    }
+  },
+  "messages": [
+    {
+      "date": "9. 6. 2026",
+      "time": "09:08",
+      "from": "KRISTYNA",
+      "to": "KR_FRIEND",
+      "text": "Ahoj, stihneme zítra tu kávu?",
+      "recordId": "26060920001"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "09:24",
+      "from": "KR_FRIEND",
+      "to": "KRISTYNA",
+      "text": "Jasně, ozvu se ti ráno.",
+      "recordId": "26060920002"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "16:18",
+      "from": "KR_SERVICE",
+      "to": "KRISTYNA",
+      "text": "Dobrý den, potvrzujeme Vaši rezervaci na čtvrtek v 15:00.",
+      "recordId": "26060920003"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "07:35",
+      "from": "MAGDA",
+      "to": "JANA_FRIEND",
+      "text": "Ahoj Věro, dnes to nestíhám. Ozvu se zítra.",
+      "recordId": "26060920004"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "07:41",
+      "from": "JANA_FRIEND",
+      "to": "MAGDA",
+      "text": "Dobře, nic se neděje.",
+      "recordId": "26060920005"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "17:22",
+      "from": "MAGDA",
+      "to": "KR_SERVICE",
+      "text": "Dobrý den, platí prosím zítřejší termín?",
+      "recordId": "26060920006"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "17:30",
+      "from": "KR_SERVICE",
+      "to": "MAGDA",
+      "text": "Ano, potvrzujeme. Děkujeme.",
+      "recordId": "26060920007"
+    }
+  ],
+  "calls": [
+    {
+      "date": "9. 6. 2026",
+      "time": "08:42",
+      "from": "KRISTYNA",
+      "to": "KR_FRIEND",
+      "duration": "02:14",
+      "status": "connected",
+      "recordId": "26060930001"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "15:03",
+      "from": "KR_SERVICE",
+      "to": "KRISTYNA",
+      "duration": "01:36",
+      "status": "connected",
+      "recordId": "26060930002"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "19:48",
+      "from": "KRISTYNA",
+      "to": "KR_FRIEND",
+      "duration": "03:07",
+      "status": "connected",
+      "recordId": "26060930003"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "08:54",
+      "from": "JANA_FRIEND",
+      "to": "MAGDA",
+      "duration": "01:54",
+      "status": "connected",
+      "recordId": "26060930004"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "14:17",
+      "from": "MAGDA",
+      "to": "JANA_UNKNOWN",
+      "duration": "04:21",
+      "status": "connected",
+      "recordId": "26060930005"
+    },
+    {
+      "date": "9. 6. 2026",
+      "time": "20:06",
+      "from": "MAGDA",
+      "to": "JANA_FRIEND",
+      "duration": "02:33",
+      "status": "connected",
+      "recordId": "26060930006"
+    }
+  ]
+};
+
+</script><script>
+(()=>{
+const D=window.TKM_DATA,S=window.TKM_SPECIAL,owner=location.pathname.includes('jana')?'MAGDA':'KRISTYNA',file=owner==='MAGDA'?'special-jana.html':'special-kristyna.html';
+const contacts={...D.contacts,...S.contacts},me=contacts[owner],date='9. 6. 2026';
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const time=x=>x.time;
+const info=key=>{const c=contacts[key];const params='back='+encodeURIComponent(file)+'&backNumber='+encodeURIComponent(me.number);return c.main?c.infoFile+'?'+params:'cislo-info.html?number='+encodeURIComponent(c.number)+'&'+params};
+const num=key=>'<a class="phone-link" href="'+info(key)+'">'+esc(contacts[key].number)+'</a>';
+const calls=[...D.calls,...S.calls].filter(x=>x.date===date&&(x.from===owner||x.to===owner)).sort((a,b)=>time(a).localeCompare(time(b)));
+const messages=[...D.messages,...S.messages].filter(x=>x.date===date&&(x.from===owner||x.to===owner)).sort((a,b)=>time(a).localeCompare(time(b)));
+const groups=new Map();messages.forEach(x=>{const other=x.from===owner?x.to:x.from;if(!groups.has(other))groups.set(other,[]);groups.get(other).push(x)});
+document.getElementById('mainNumber').textContent=me.number;document.getElementById('mainNumber').href=info(owner);
+document.getElementById('ownerLabel').textContent=me.name;document.getElementById('callCount').textContent=calls.length;document.getElementById('smsCount').textContent=groups.size;
+document.getElementById('callsBody').innerHTML=calls.map(x=>{const incoming=x.to===owner,other=incoming?x.from:x.to,miss=x.status==='missed',type=miss?(incoming?'Zmeškaný':'Neuskutečněný'):(incoming?'Příchozí':'Odchozí'),cls=miss?'missed':incoming?'incoming':'outgoing';return '<tr><td>'+esc(x.date)+'</td><td>'+esc(x.time)+'</td><td>'+num(other)+'</td><td class="record-id">'+esc(x.recordId)+'</td><td><span class="badge '+cls+'">'+type+'</span></td><td>'+esc(x.duration)+'</td><td><button class="action open-audio" data-id="'+esc(x.recordId)+'" type="button">Přehrát</button></td></tr>'}).join('');
+document.getElementById('smsBody').innerHTML=[...groups.entries()].map(([other,items])=>'<tr><td>'+num(other)+'</td><td>'+esc(items[0].time)+'</td><td>'+esc(items[items.length-1].time)+'</td><td>'+items.length+'</td><td><button class="action open-sms" type="button" data-other="'+esc(other)+'">Záznam konverzace</button></td></tr>').join('');
+const modal=document.getElementById('audioModal'),player=document.getElementById('player'),status=document.getElementById('audioStatus');
+document.querySelectorAll('.open-audio').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.id;document.getElementById('audioInfo').textContent='ID hovoru: '+id;player.removeAttribute('src');player.load();const sound='audio/'+id+'.mp3';status.textContent='Pro tento hovor zatím není přiložen zvukový soubor. Po vložení '+sound+' bude možné hovor přehrát.';modal.classList.add('open');fetch(sound,{method:'HEAD'}).then(r=>{if(!r.ok)return;player.src=sound;player.load();status.textContent='Nahrávka je připravena k přehrání.'}).catch(()=>{});}));
+modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.contains('modal-close')){player.pause();modal.classList.remove('open')}});
+
+const smsModal=document.getElementById('smsModal');
+document.querySelectorAll('.open-sms').forEach(b=>b.addEventListener('click',()=>{
+const other=b.dataset.other,items=groups.get(other)||[];
+document.getElementById('smsInfo').textContent=me.number+' ↔ '+contacts[other].number;
+document.getElementById('smsMessages').innerHTML=items.map(x=>'<div class="sms-bubble '+(x.from===owner?'sms-out':'')+'"><small>'+esc(x.time)+' · '+esc(contacts[x.from].name)+' · ID '+esc(x.recordId||'—')+'</small><p>'+esc(x.text)+'</p></div>').join('');
+smsModal.classList.add('open');
+}));
+smsModal.addEventListener('click',e=>{if(e.target===smsModal||e.target.classList.contains('modal-close'))smsModal.classList.remove('open')});
+})();
+</script></body></html>
