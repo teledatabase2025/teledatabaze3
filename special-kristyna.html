@@ -6,7 +6,21 @@
 <div class="card"><div class="card-header"><h2>Záznamy hovorů – 9. 6. 2026</h2><p>Každý hovor má samostatné ID. Telefonní čísla lze rozkliknout.</p></div><div class="table-wrap"><table><thead><tr><th>Datum</th><th>Čas</th><th>Telefonní číslo</th><th>ID hovoru</th><th>Typ</th><th>Délka</th><th>Záznam</th></tr></thead><tbody id="callsBody"></tbody></table></div></div>
 <div class="card"><div class="card-header"><h2>SMS konverzace – 9. 6. 2026</h2><p>Otevřít lze pouze komunikaci z uvedeného dne.</p></div><div class="table-wrap"><table><thead><tr><th>Telefonní číslo</th><th>První SMS</th><th>Poslední SMS</th><th>Počet SMS</th><th>Záznam</th></tr></thead><tbody id="smsBody"></tbody></table></div></div>
 </div><div class="modal-backdrop" id="audioModal"><div class="modal"><div class="modal-head">Zvukový záznam hovoru</div><div class="modal-body"><div id="audioInfo"></div><audio id="player" controls preload="none"></audio><div id="audioStatus" class="audio-note"></div></div><div class="modal-actions"><button class="modal-close" type="button">Zavřít</button></div></div></div>
-<style>.sms-bubble{margin:10px 0;padding:13px 16px;border-radius:9px;border:1px solid #dde3eb;background:#f4f7fb}.sms-bubble.sms-out{margin-left:12%;background:#eaf3ff}.sms-bubble small{display:block;color:#667085;margin-bottom:5px}.sms-bubble p{margin:0;white-space:pre-wrap}#smsMessages{max-height:60vh;overflow:auto}</style><div class="modal-backdrop" id="smsModal"><div class="modal"><div class="modal-head">SMS konverzace – 9. 6. 2026</div><div class="modal-body"><p id="smsInfo"></p><div id="smsMessages"></div></div><div class="modal-actions"><button type="button" class="modal-close">Zavřít</button></div></div></div><script src="tkm-data.js"></script><script>
+<style>
+/* Převzato ze vzhledu původního sms-detail.html */
+#smsModal .modal{width:min(940px,100%);max-height:94vh;display:flex;flex-direction:column}
+#smsModal .modal-body{overflow-y:auto;padding:0;min-height:0}
+#smsModal .thread{padding:24px 26px 30px;display:flex;flex-direction:column;gap:14px}
+#smsModal .sms-bubble{max-width:78%;border-radius:14px;padding:15px 17px;border:1px solid #dce3ed;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+#smsModal .sms-bubble.in{align-self:flex-start;background:#f7f9fc;border-left:5px solid #2e7d32}
+#smsModal .sms-bubble.out{align-self:flex-end;background:#eef5ff;border-right:5px solid #0d47a1}
+#smsModal .sms-top{display:flex;gap:12px;justify-content:space-between;align-items:center;font-size:13px;color:#667085;margin-bottom:9px}
+#smsModal .sms-text{white-space:pre-line;font-size:18px;line-height:1.55}
+#smsModal .sms-id{font-family:Consolas,monospace;color:#475467}
+#smsModal .thread-numbers{font-weight:800;color:#0d47a1}
+#smsModal .modal-actions{padding-top:12px;border-top:1px solid #dce3ed}
+@media(max-width:620px){#smsModal .sms-bubble{max-width:94%}#smsModal .sms-top{flex-wrap:wrap}}
+</style><div class="modal-backdrop" id="smsModal"><div class="modal"><div class="modal-head">SMS konverzace – 9. 6. 2026</div><div class="modal-body"><div class="card-header"><p>SMS komunikace</p><h2 style="margin:0">Celá konverzace</h2><div id="smsInfo" class="thread-numbers" style="margin-top:8px"></div></div><div id="smsMessages" class="thread"></div></div><div class="modal-actions"><button type="button" class="modal-close">Zavřít</button></div></div></div><script src="tkm-data.js"></script><script>
 window.TKM_SPECIAL = {
   "contacts": {
     "KR_FRIEND": {
@@ -200,7 +214,7 @@ const groups=new Map();messages.forEach(x=>{const other=x.from===owner?x.to:x.fr
 document.getElementById('mainNumber').textContent=me.number;document.getElementById('mainNumber').href=info(owner);
 document.getElementById('ownerLabel').textContent=me.name;document.getElementById('callCount').textContent=calls.length;document.getElementById('smsCount').textContent=groups.size;
 document.getElementById('callsBody').innerHTML=calls.map(x=>{const incoming=x.to===owner,other=incoming?x.from:x.to,miss=x.status==='missed',type=miss?(incoming?'Zmeškaný':'Neuskutečněný'):(incoming?'Příchozí':'Odchozí'),cls=miss?'missed':incoming?'incoming':'outgoing';return '<tr><td>'+esc(x.date)+'</td><td>'+esc(x.time)+'</td><td>'+num(other)+'</td><td class="record-id">'+esc(x.recordId)+'</td><td><span class="badge '+cls+'">'+type+'</span></td><td>'+esc(x.duration)+'</td><td><button class="action open-audio" data-id="'+esc(x.recordId)+'" type="button">Přehrát</button></td></tr>'}).join('');
-document.getElementById('smsBody').innerHTML=[...groups.entries()].map(([other,items])=>'<tr><td>'+num(other)+'</td><td>'+esc(items[0].time)+'</td><td>'+esc(items[items.length-1].time)+'</td><td>'+items.length+'</td><td><a class="action" href="'+file+'?view=sms&other='+encodeURIComponent(other)+'">Záznam konverzace</a></td></tr>').join('');
+document.getElementById('smsBody').innerHTML=[...groups.entries()].map(([other,items])=>'<tr><td>'+num(other)+'</td><td>'+esc(items[0].time)+'</td><td>'+esc(items[items.length-1].time)+'</td><td>'+items.length+'</td><td><button class="action open-sms" type="button" data-other="'+esc(other)+'">Záznam konverzace</button></td></tr>').join('');
 const modal=document.getElementById('audioModal'),player=document.getElementById('player'),status=document.getElementById('audioStatus');
 document.querySelectorAll('.open-audio').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.id;document.getElementById('audioInfo').textContent='ID hovoru: '+id;player.removeAttribute('src');player.load();const sound='audio/'+id+'.mp3';status.textContent='Pro tento hovor zatím není přiložen zvukový soubor. Po vložení '+sound+' bude možné hovor přehrát.';modal.classList.add('open');fetch(sound,{method:'HEAD'}).then(r=>{if(!r.ok)return;player.src=sound;player.load();status.textContent='Nahrávka je připravena k přehrání.'}).catch(()=>{});}));
 modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.contains('modal-close')){player.pause();modal.classList.remove('open')}});
@@ -208,8 +222,8 @@ modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.conta
 const smsModal=document.getElementById('smsModal');
 document.querySelectorAll('.open-sms').forEach(b=>b.addEventListener('click',()=>{
 const other=b.dataset.other,items=groups.get(other)||[];
-document.getElementById('smsInfo').textContent=me.number+' ↔ '+contacts[other].number;
-document.getElementById('smsMessages').innerHTML=items.map(x=>'<div class="sms-bubble '+(x.from===owner?'sms-out':'')+'"><small>'+esc(x.time)+' · '+esc(contacts[x.from].name)+' · ID '+esc(x.recordId||'—')+'</small><p>'+esc(x.text)+'</p></div>').join('');
+document.getElementById('smsInfo').innerHTML=num(owner)+' ↔ '+num(other);
+document.getElementById('smsMessages').innerHTML=items.map(x=>'<div class="sms-bubble '+(x.from===owner?'out':'in')+'"><div class="sms-top"><span><strong>'+(x.from===owner?'Odchozí':'Příchozí')+'</strong> · '+esc(x.date)+', '+esc(x.time)+'</span><span class="sms-id">ID '+esc(x.recordId||'—')+'</span></div><div class="sms-text">'+esc(x.text)+'</div></div>').join('');
 smsModal.classList.add('open');
 }));
 smsModal.addEventListener('click',e=>{if(e.target===smsModal||e.target.classList.contains('modal-close'))smsModal.classList.remove('open')});
