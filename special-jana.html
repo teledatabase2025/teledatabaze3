@@ -16,7 +16,7 @@ window.TKM_SPECIAL = {
       "type": "Tarifní SIM karta",
       "activation": "4. 3. 2021",
       "registered": "ANO",
-      "address": "Praha 3, Žižkov",
+      "address": "Bořivojova 1045/60, Praha 3 – Žižkov",
       "note": ""
     },
     "KR_SERVICE": {
@@ -26,7 +26,7 @@ window.TKM_SPECIAL = {
       "type": "Firemní tarif",
       "activation": "12. 2. 2024",
       "registered": "ANO",
-      "address": "Praha 2, Vinohrady",
+      "address": "Slezská 1123/45, Praha 2 – Vinohrady",
       "note": ""
     },
     "JANA_FRIEND": {
@@ -36,7 +36,7 @@ window.TKM_SPECIAL = {
       "type": "Tarifní SIM karta",
       "activation": "6. 5. 2018",
       "registered": "ANO",
-      "address": "Praha 10, Vršovice",
+      "address": "Moskevská 1440/24, Praha 10 – Vršovice",
       "note": ""
     },
     "JANA_UNKNOWN": {
@@ -172,15 +172,35 @@ const D=window.TKM_DATA,S=window.TKM_SPECIAL,owner=location.pathname.includes('j
 const contacts={...D.contacts,...S.contacts},me=contacts[owner],date='9. 6. 2026';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const time=x=>x.time;
-const info=key=>{const c=contacts[key];const params='back='+encodeURIComponent(file)+'&backNumber='+encodeURIComponent(me.number);return c.main?c.infoFile+'?'+params:'cislo-info.html?number='+encodeURIComponent(c.number)+'&'+params};
+const info=key=>{const c=contacts[key];const params=new URLSearchParams({view:'info',contact:key});return file+'?'+params.toString()};
 const num=key=>'<a class="phone-link" href="'+info(key)+'">'+esc(contacts[key].number)+'</a>';
+const params=new URLSearchParams(location.search),view=params.get('view');
+if(view==='info'||view==='sms'){
+  document.querySelector('.container').innerHTML='<div id="detailContent"></div>';
+  document.querySelectorAll('.modal-backdrop').forEach(el=>el.remove());
+  const content=document.getElementById('detailContent');
+  const back='<a class="back primary-back" href="'+file+'">← Zpět na speciální výpis '+esc(me.number)+'</a>';
+  if(view==='info'){
+    const key=params.get('contact'),c=contacts[key];
+    if(!c){content.innerHTML='<div class="card"><div class="card-header"><h1>Číslo nebylo nalezeno</h1></div></div>'+back;return;}
+    const item=(label,value)=>'<div class="info-box"><small>'+label+'</small><strong>'+esc(value||'—')+'</strong></div>';
+    content.innerHTML='<div class="card"><div class="card-header"><p>Informace o telefonním čísle</p><h1>'+esc(c.number)+'</h1></div><div class="info-grid">'+item('Jméno / označení',c.name)+item('Operátor',c.operator)+item('Typ SIM karty',c.type)+item('Datum aktivace',c.activation)+item('Registrovaný uživatel',c.registered)+item('Adresa evidovaná u operátora',c.address)+item('Poznámka',c.note||'Bez dalších údajů')+'</div></div>'+back;
+  }else{
+    const other=params.get('other'),them=contacts[other];
+    const thread=[...D.messages,...S.messages].filter(x=>x.date===date&&((x.from===owner&&x.to===other)||(x.to===owner&&x.from===other))).sort((a,b)=>a.time.localeCompare(b.time));
+    if(!them){content.innerHTML='<div class="card"><div class="card-header"><h1>Konverzace nebyla nalezena</h1></div></div>'+back;return;}
+    const bubble=x=>'<div class="sms-bubble '+(x.from===owner?'sms-out':'')+'"><small>'+esc(x.date)+' · '+esc(x.time)+' · '+(x.from===owner?'Odchozí':'Příchozí')+' · ID '+esc(x.recordId||'—')+'</small><p>'+esc(x.text)+'</p></div>';
+    content.innerHTML='<div class="card"><div class="card-header"><p>SMS komunikace – 9. 6. 2026</p><h1>Celá konverzace</h1><p>'+num(owner)+' ↔ '+num(other)+'</p></div><div style="padding:18px 24px">'+(thread.length?thread.map(bubble).join(''):'<p>V uvedený den nebyly nalezeny žádné zprávy.</p>')+'</div></div>'+back;
+  }
+  return;
+}
 const calls=[...D.calls,...S.calls].filter(x=>x.date===date&&(x.from===owner||x.to===owner)).sort((a,b)=>time(a).localeCompare(time(b)));
 const messages=[...D.messages,...S.messages].filter(x=>x.date===date&&(x.from===owner||x.to===owner)).sort((a,b)=>time(a).localeCompare(time(b)));
 const groups=new Map();messages.forEach(x=>{const other=x.from===owner?x.to:x.from;if(!groups.has(other))groups.set(other,[]);groups.get(other).push(x)});
 document.getElementById('mainNumber').textContent=me.number;document.getElementById('mainNumber').href=info(owner);
 document.getElementById('ownerLabel').textContent=me.name;document.getElementById('callCount').textContent=calls.length;document.getElementById('smsCount').textContent=groups.size;
 document.getElementById('callsBody').innerHTML=calls.map(x=>{const incoming=x.to===owner,other=incoming?x.from:x.to,miss=x.status==='missed',type=miss?(incoming?'Zmeškaný':'Neuskutečněný'):(incoming?'Příchozí':'Odchozí'),cls=miss?'missed':incoming?'incoming':'outgoing';return '<tr><td>'+esc(x.date)+'</td><td>'+esc(x.time)+'</td><td>'+num(other)+'</td><td class="record-id">'+esc(x.recordId)+'</td><td><span class="badge '+cls+'">'+type+'</span></td><td>'+esc(x.duration)+'</td><td><button class="action open-audio" data-id="'+esc(x.recordId)+'" type="button">Přehrát</button></td></tr>'}).join('');
-document.getElementById('smsBody').innerHTML=[...groups.entries()].map(([other,items])=>'<tr><td>'+num(other)+'</td><td>'+esc(items[0].time)+'</td><td>'+esc(items[items.length-1].time)+'</td><td>'+items.length+'</td><td><button class="action open-sms" type="button" data-other="'+esc(other)+'">Záznam konverzace</button></td></tr>').join('');
+document.getElementById('smsBody').innerHTML=[...groups.entries()].map(([other,items])=>'<tr><td>'+num(other)+'</td><td>'+esc(items[0].time)+'</td><td>'+esc(items[items.length-1].time)+'</td><td>'+items.length+'</td><td><a class="action" href="'+file+'?view=sms&other='+encodeURIComponent(other)+'">Záznam konverzace</a></td></tr>').join('');
 const modal=document.getElementById('audioModal'),player=document.getElementById('player'),status=document.getElementById('audioStatus');
 document.querySelectorAll('.open-audio').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.id;document.getElementById('audioInfo').textContent='ID hovoru: '+id;player.removeAttribute('src');player.load();const sound='audio/'+id+'.mp3';status.textContent='Pro tento hovor zatím není přiložen zvukový soubor. Po vložení '+sound+' bude možné hovor přehrát.';modal.classList.add('open');fetch(sound,{method:'HEAD'}).then(r=>{if(!r.ok)return;player.src=sound;player.load();status.textContent='Nahrávka je připravena k přehrání.'}).catch(()=>{});}));
 modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.contains('modal-close')){player.pause();modal.classList.remove('open')}});
